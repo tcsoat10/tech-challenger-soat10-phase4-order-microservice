@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: tc-app-config
+data:
+  # MYSQL_VERSION: "8.0"
+  # MYSQL_CONTAINER_NAME: "mysql-db"
+  # MYSQL_DATABASE: "tech-challenger-db"
+  # MYSQL_HOST: "mysql-db-service" #"mysql-db" "localhost"
+  # MYSQL_PORT: "3306"
+  DEBUG: "false"
+  ENVIRONMENT: "production"
+  APP_NAME: "tech-challenger-app"
+  APP_PORT: "8000"
+  LOG_LEVEL: "INFO"
+  # WEBHOOK_URL: "https://9830-189-124-19-101.ngrok-free.app"
+  PORT: "8000"

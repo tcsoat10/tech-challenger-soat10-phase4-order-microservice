@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: tech-challenger-svc
+  labels:
+    app: tech-challenger-svc
+spec:
+  type: LoadBalancer
+  ports:
+    - port: 80
+      targetPort: 8000
+      nodePort: 32000
+  selector:
+    app: tech-challenger-pod

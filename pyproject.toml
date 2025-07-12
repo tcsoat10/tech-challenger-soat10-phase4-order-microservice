@@ -1,0 +1,46 @@
+[tool.poetry]
+name = "tech-challenger-soat10"
+version = "0.1.0"
+authors = ["Carlos Roberto <carlosjr.if@gmail.com>"]
+description = ""
+package-mode = false
+
+[tool.poetry.dependencies]
+python = "^3.12"
+fastapi = "^0.115.6"
+injector = "^0.22.0"
+uvicorn = "^0.32.1"
+sqlalchemy = "^2.0.36"
+pydantic = {extras = ["email"], version = "^2.10.5"}
+load-dotenv = "^0.1.0"
+httpx = "^0.28.1"
+psycopg2-binary = "^2.9.10"
+pymysql = "^1.1.1"
+cryptography = "^44.0.0"
+alembic = "^1.14.0"
+bcrypt = "^4.2.1"
+python-jose = {version = "^3.4.0", extras = ["cryptography"]}
+python-multipart = "^0.0.20"
+pycpfcnpj = "^1.8"
+requests = "^2.32.3"
+dependency-injector = "^4.46.0"
+
+[tool.poetry.group.test]
+optional = true
+
+[tool.poetry.group.test.dependencies]
+pytest-cov = "^6.0.0"
+pytest-xdist = "^3.6.1"
+factory-boy = "^3.3.1"
+faker = "^33.1.0"
+pytest-mock = "^3.14.0"
+pytest = "^8.3.5"
+pytest-watch = "^4.2.0"
+
+
+[tool.poetry.group.dev.dependencies]
+ipython = "^8.31.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
