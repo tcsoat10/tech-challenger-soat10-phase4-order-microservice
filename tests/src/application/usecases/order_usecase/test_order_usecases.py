@@ -1,6 +1,7 @@
 from datetime import datetime
 import pytest
 from pycpfcnpj import gen
+from unittest.mock import patch
 
 from src.core.exceptions.entity_not_found_exception import EntityNotFoundException
 from src.core.exceptions.bad_request_exception import BadRequestException
@@ -8,9 +9,11 @@ from src.constants.order_status import OrderStatusEnum
 from src.constants.product_category import ProductCategoryEnum
 
 from src.core.domain.dtos.order_item.create_order_item_dto import CreateOrderItemDTO
+from src.core.domain.entities.order_item import OrderItem
 
 from src.adapters.driven.repositories.order_repository import OrderRepository
 from src.adapters.driven.repositories.order_status_repository import OrderStatusRepository
+from src.adapters.driven.providers.stock_provider.stock_microservice_gateway import StockMicroserviceGateway
 
 from src.application.usecases.order_usecase.create_order_usecase import CreateOrderUseCase
 from src.application.usecases.order_usecase.add_order_item_in_order_usecase import AddOrderItemInOrderUseCase
@@ -26,11 +29,118 @@ from src.application.usecases.order_usecase.get_order_status_usecase import GetO
 
 
 class TestOrderUseCases:
+    @pytest.fixture(autouse=True)
+    def mock_stock_gateway(self):
+        def fake_get_category_by_name(category_name):
+            if category_name == "burgers":
+                return {
+                "id": 1,
+                "name": ProductCategoryEnum.BURGERS.name,
+                "description": ProductCategoryEnum.BURGERS.description
+                }
+            if category_name == "sides":
+                return {
+                "id": 2,
+                "name": ProductCategoryEnum.SIDES.name,
+                "description": ProductCategoryEnum.SIDES.description
+                }
+            if category_name == "drinks":
+                return {
+                "id": 3,
+                "name": ProductCategoryEnum.DRINKS.name,
+                "description": ProductCategoryEnum.DRINKS.description
+                }
+            if category_name == "desserts":
+                return {
+                "id": 4,
+                "name": ProductCategoryEnum.DESSERTS.name,
+                "description": ProductCategoryEnum.DESSERTS.description
+                }
+            # Simule produto não encontrado
+            return None
+        
+        def fake_get_products_by_category_id(category_id):
+            # Retorne uma lista fake de produtos conforme esperado pelo seu código
+            if category_id == 1:
+                return [OrderItem(
+                id=1,
+                product_name="Burger",
+                product_sku="burger-001",
+                product_id=1,
+                product_price=6.0,
+                product_category_name="burgers",
+                quantity=2,
+                observation="No onions"
+                )]
+            if category_id == 2:
+                return [OrderItem(
+                id=2,
+                product_name="Fries",
+                product_sku="fries-001",
+                product_id=2,
+                product_price=3.0,
+                product_category_name="sides",
+                quantity=1,
+                observation=""
+                )]
+            if category_id == 3:
+                return [OrderItem(
+                id=3,
+                product_name="Soda",
+                product_sku="soda-001",
+                product_id=3,
+                product_price=2.0,
+                product_category_name="drinks",
+                quantity=1,
+                observation=""
+                )]
+            if category_id == 4:
+                return [OrderItem(
+                id=4,
+                product_name="Ice Cream",
+                product_sku="icecream-001",
+                product_id=4,
+                product_price=4.0,
+                product_category_name="desserts",
+                quantity=1,
+                observation=""
+                )]        
+            return []
+        def fake_get_product_by_id(product_id):
+            # Retorne um produto fake conforme esperado pelo seu código
+            if product_id == 1:
+                return OrderItem(
+                    id=1,
+                    product_name="Burger",
+                    product_sku="burger-001",
+                    product_id=1,
+                    product_price=6.0,
+                    product_category_name=ProductCategoryEnum.BURGERS.name,
+                    quantity=2,
+                    observation="No onions"
+                )
+            return None        
+
+        with patch.object(
+            StockMicroserviceGateway,
+            "get_category_by_name",
+            side_effect=fake_get_category_by_name
+        ), patch.object(
+            StockMicroserviceGateway,
+            "get_products_by_category_id",
+            side_effect=fake_get_products_by_category_id
+        ), patch.object(
+            StockMicroserviceGateway,
+            "get_product_by_id",
+            side_effect=fake_get_product_by_id
+        ):
+            yield
     
     @pytest.fixture(autouse=True)
     def setup(self, db_session, populate_order_status):
         self.order_gateway = OrderRepository(db_session)
         self.order_status_gateway = OrderStatusRepository(db_session)
+        self.stock_gateway = StockMicroserviceGateway()
 
         self.create_order_usecase = CreateOrderUseCase.build(
             order_gateway=self.order_gateway,
@@ -39,7 +149,7 @@ class TestOrderUseCases:
         
         self.add_order_item_usecase = AddOrderItemInOrderUseCase.build(
             order_gateway=self.order_gateway,
-            product_gateway=self.product_gateway
+            stock_gateway=self.stock_gateway,
         )
         
         self.list_orders_usecase = ListOrdersUseCase.build(order_gateway=self.order_gateway)
@@ -67,83 +177,21 @@ class TestOrderUseCases:
         
         self.list_products_by_order_status_usecase = ListProductsByOrderStatusUseCase.build(
             order_gateway=self.order_gateway,
-            product_gateway=self.product_gateway
+            stock_provider_gateway=self.stock_gateway
         )
 
         self.get_order_status_usecase = GetOrderStatusUsecase.build(order_gateway=self.order_gateway)
-        
-        self.create_category_usecase = CreateCategoryUseCase(
-            category_gateway=self.category_gateway
-        )
-        
-        self.create_product_usecase = CreateProductUsecase(
-            product_gateway=self.product_gateway,
-            category_gateway=self.category_gateway
-        )
         
         self._create_test_data()
     
     def _create_test_data(self):        
         self.test_customer = 'customer'
-        
-        burger_category_dto = CreateCategoryDTO(
-            name=ProductCategoryEnum.BURGERS.name,
-            description="Hamburgers"
-        )
-        
-        sides_category_dto = CreateCategoryDTO(
-            name=ProductCategoryEnum.SIDES.name,
-            description="Side dishes"
-        )
-        
-        drinks_category_dto = CreateCategoryDTO(
-            name=ProductCategoryEnum.DRINKS.name,
-            description="Drinks"
-        )
-        
-        desserts_category_dto = CreateCategoryDTO(
-            name=ProductCategoryEnum.DESSERTS.name,
-            description="Desserts"
-        )
-        
-        self.burger_category = self.create_category_usecase.execute(burger_category_dto)
-        self.sides_category = self.create_category_usecase.execute(sides_category_dto)
-        self.drinks_category = self.create_category_usecase.execute(drinks_category_dto)
-        self.desserts_category = self.create_category_usecase.execute(desserts_category_dto)
-        
-        burger_dto = CreateProductDTO(
-            name="Test Burger",
-            description="A tasty burger",
-            price=15.0,
-            category_id=self.burger_category.id
-        )
-        
-        sides_dto = CreateProductDTO(
-            name="Test Fries",
-            description="Crispy fries",
-            price=8.0,
-            category_id=self.sides_category.id
-        )
-        
-        drink_dto = CreateProductDTO(
-            name="Test Soda",
-            description="Refreshing soda",
-            price=5.0,
-            category_id=self.drinks_category.id
-        )
-        
-        dessert_dto = CreateProductDTO(
-            name="Test Ice Cream",
-            description="Sweet ice cream",
-            price=7.0,
-            category_id=self.desserts_category.id
-        )
-        
-        self.burger_product = self.create_product_usecase.execute(burger_dto)
-        self.sides_product = self.create_product_usecase.execute(sides_dto)
-        self.drink_product = self.create_product_usecase.execute(drink_dto)
-        self.dessert_product = self.create_product_usecase.execute(dessert_dto)
-    
+        self.burger_order_item = {
+            "product_id": 1,
+            "quantity": 2,
+            "observation": "No pickles"
+        }
+
     @pytest.fixture
     def customer_user(self):
         return 'customer'
@@ -189,7 +237,7 @@ class TestOrderUseCases:
         self.advance_order_status_usecase.execute(order_id=order.id)
         
         order_item_dto = CreateOrderItemDTO(
-            product_id=self.burger_product.id,
+            product_id=self.burger_order_item['product_id'],
             quantity=2,
             observation="No pickles"
         )
@@ -200,7 +248,7 @@ class TestOrderUseCases:
         )
         
         assert len(updated_order.order_items) == 1
-        assert updated_order.order_items[0].product.id == self.burger_product.id
+        assert updated_order.order_items[0].product_id == self.burger_order_item['product_id']
         assert updated_order.order_items[0].quantity == 2
         assert updated_order.order_items[0].observation == "No pickles"
     
@@ -210,7 +258,7 @@ class TestOrderUseCases:
         self.advance_order_status_usecase.execute(order_id=order.id)
         
         order_item_dto = CreateOrderItemDTO(
-            product_id=self.burger_product.id,
+            product_id=self.burger_order_item['product_id'],
             quantity=2,
             observation="No pickles"
         )
@@ -220,7 +268,7 @@ class TestOrderUseCases:
         order_items = self.list_order_items_usecase.execute(order_id=order.id)
         
         assert len(order_items) == 1
-        assert order_items[0].product.id == self.burger_product.id
+        assert order_items[0].product_id == self.burger_order_item['product_id']
         assert order_items[0].quantity == 2
     
     def test_change_item_quantity_usecase(self, customer_user):
@@ -229,7 +277,7 @@ class TestOrderUseCases:
         self.advance_order_status_usecase.execute(order_id=order.id)
         
         order_item_dto = CreateOrderItemDTO(
-            product_id=self.burger_product.id,
+            product_id=self.burger_order_item['product_id'],
             quantity=2,
             observation="No pickles"
         )
@@ -250,7 +298,7 @@ class TestOrderUseCases:
         self.advance_order_status_usecase.execute(order_id=order.id)
         
         order_item_dto = CreateOrderItemDTO(
-            product_id=self.burger_product.id,
+            product_id=self.burger_order_item['product_id'],
             quantity=1,
             observation="No pickles"
         )
@@ -271,7 +319,7 @@ class TestOrderUseCases:
         self.advance_order_status_usecase.execute(order_id=order.id)
         
         order_item_dto = CreateOrderItemDTO(
-            product_id=self.burger_product.id,
+            product_id=self.burger_order_item['product_id'],
             quantity=2,
             observation="No pickles"
         )
@@ -316,7 +364,7 @@ class TestOrderUseCases:
         products = self.list_products_by_order_status_usecase.execute(order_id=order.id)
         
         assert len(products) == 1
-        assert products[0].id == self.burger_product.id
+        assert products[0].id == self.burger_order_item['product_id']
     
     def test_access_non_existent_order(self, customer_user):
         with pytest.raises(EntityNotFoundException):
