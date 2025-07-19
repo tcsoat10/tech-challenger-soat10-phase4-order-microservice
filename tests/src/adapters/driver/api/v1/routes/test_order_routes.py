@@ -1,11 +1,123 @@
 from fastapi import status
 import pytest
+from unittest.mock import patch
+import uuid
 
 from src.constants.product_category import ProductCategoryEnum
 from src.constants.order_status import OrderStatusEnum
 from tests.factories.order_factory import OrderFactory
 from tests.factories.order_item_factory import OrderItemFactory
 from tests.factories.order_status_factory import OrderStatusFactory
+from src.adapters.driven.providers.stock_provider.stock_microservice_gateway import StockMicroserviceGateway
+from src.core.domain.entities.order_item import OrderItem
+
+
+@pytest.fixture(autouse=True)
+def mock_stock_gateway():
+    def fake_get_category_by_name(category_name):
+        if category_name == "burgers":
+            return {
+            "id": 1,
+            "name": ProductCategoryEnum.BURGERS.name,
+            "description": ProductCategoryEnum.BURGERS.description
+            }
+        if category_name == "sides":
+            return {
+            "id": 2,
+            "name": ProductCategoryEnum.SIDES.name,
+            "description": ProductCategoryEnum.SIDES.description
+            }
+        if category_name == "drinks":
+            return {
+            "id": 3,
+            "name": ProductCategoryEnum.DRINKS.name,
+            "description": ProductCategoryEnum.DRINKS.description
+            }
+        if category_name == "desserts":
+            return {
+            "id": 4,
+            "name": ProductCategoryEnum.DESSERTS.name,
+            "description": ProductCategoryEnum.DESSERTS.description
+            }
+        # Simule produto não encontrado
+        return None
+    
+    def fake_get_products_by_category_id(category_id):
+        # Retorne uma lista fake de produtos conforme esperado pelo seu código
+        if category_id == 1:
+            return [OrderItem(
+            id=1,
+            product_name="Burger",
+            product_sku="burger-001",
+            product_id=str(uuid.uuid4()),
+            product_price=6.0,
+            product_category_name="burgers",
+            quantity=2,
+            observation="No onions"
+            )]
+        if category_id == 2:
+            return [OrderItem(
+            id=2,
+            product_name="Fries",
+            product_sku="fries-001",
+            product_id=str(uuid.uuid4()),
+            product_price=3.0,
+            product_category_name="sides",
+            quantity=1,
+            observation=""
+            )]
+        if category_id == 3:
+            return [OrderItem(
+            id=3,
+            product_name="Soda",
+            product_sku="soda-001",
+            product_id=str(uuid.uuid4()),
+            product_price=2.0,
+            product_category_name="drinks",
+            quantity=1,
+            observation=""
+            )]
+        if category_id == 4:
+            return [OrderItem(
+            id=4,
+            product_name="Ice Cream",
+            product_sku="icecream-001",
+            product_id=str(uuid.uuid4()),
+            product_price=4.0,
+            product_category_name="desserts",
+            quantity=1,
+            observation=""
+            )]        
+        return []
+    def fake_get_product_by_id(product_id):
+        # Retorne um produto fake conforme esperado pelo seu código
+        if product_id == 1:
+            return OrderItem(
+                id=1,
+                product_name="Burger",
+                product_sku="burger-001",
+                product_id=str(uuid.uuid4()),
+                product_price=6.0,
+                product_category_name=ProductCategoryEnum.BURGERS.name,
+                quantity=2,
+                observation="No onions"
+            )
+        return None        
+
+    with patch.object(
+        StockMicroserviceGateway,
+        "get_category_by_name",
+        side_effect=fake_get_category_by_name
+    ), patch.object(
+        StockMicroserviceGateway,
+        "get_products_by_category_id",
+        side_effect=fake_get_products_by_category_id
+    ), patch.object(
+        StockMicroserviceGateway,
+        "get_product_by_id",
+        side_effect=fake_get_product_by_id
+    ):
+        yield
 
 
 def test_create_order_success(client, populate_order_status):
@@ -26,7 +138,7 @@ def test_create_order_success(client, populate_order_status):
     assert data["order_status"]["status"] == OrderStatusEnum.ORDER_PENDING.status
     assert data["order_status"]["description"] == OrderStatusEnum.ORDER_PENDING.description
 
-'''    
+    
 def test_list_products_by_order_status_and_return_success(client):
     """ person = PersonFactory()
     customer = CustomerFactory(person=person)
@@ -39,22 +151,24 @@ def test_list_products_by_order_status_and_return_success(client):
 
     order_status = OrderStatusFactory(status=OrderStatusEnum.ORDER_WAITING_BURGERS.status, description=OrderStatusEnum.ORDER_WAITING_BURGERS.description)
 
-
+    order_item = OrderItemFactory(product_category_name=ProductCategoryEnum.BURGERS.name, product_name="Burger")
     order = OrderFactory(id_customer='customer', order_status=order_status)
+    order.order_items=[order_item]
 
     response = client.get(
         f"/api/v1/orders/{order.id}/products",
     )
 
     assert response.status_code == status.HTTP_200_OK
+    
 
     data = response.json()
+    print(data)
+    print(order.order_items)
     assert len(data) == 1
-    assert data[0]["category"]["name"] == ProductCategoryEnum.BURGERS.name
-    assert data[0]["category"]["description"] == ProductCategoryEnum.BURGERS.description
-    assert data[0]["name"] == product1.name
-    assert data[0]["description"] == product1.description
-'''
+    assert data[0]["product_category_name"] == ProductCategoryEnum.BURGERS.name
+    assert data[0]["product_name"] == order.order_items[0].product_name
+
 def test_get_order_by_id_and_return_success(client):
     order = OrderFactory()
 
@@ -74,12 +188,11 @@ def test_add_item_and_return_success(client):
     order_status = OrderStatusFactory(status=OrderStatusEnum.ORDER_WAITING_BURGERS.status, description=OrderStatusEnum.ORDER_WAITING_BURGERS.description)
     order = OrderFactory(order_status=order_status)
 
-    category = CategoryFactory(name=ProductCategoryEnum.BURGERS.name, description=ProductCategoryEnum.BURGERS.description)
-    product = ProductFactory(category=category)
+    order_item = OrderItemFactory(product_category_name=ProductCategoryEnum.BURGERS.name, product_id=1)
 
     payload = {
         "order_id": order.id,
-        "product_id": product.id,
+        "product_id": order_item.product_id,
         "quantity": 1,
         "observation": "No onions"
     }
@@ -95,15 +208,14 @@ def test_add_item_and_return_success(client):
     assert data["detail"] == "Item adicionado com sucesso."
 
 def test_try_add_item_product_with_different_category_and_return_error(client):
-    order_status = OrderStatusFactory(status=OrderStatusEnum.ORDER_WAITING_BURGERS.status, description=OrderStatusEnum.ORDER_WAITING_BURGERS.description)
+    order_status = OrderStatusFactory(status=OrderStatusEnum.ORDER_WAITING_DRINKS.status, description=OrderStatusEnum.ORDER_WAITING_DRINKS.description)
     order = OrderFactory(order_status=order_status)
 
-    category = CategoryFactory(name=ProductCategoryEnum.DRINKS.name, description=ProductCategoryEnum.DRINKS.description)
-    product = ProductFactory(category=category)
+    order_item = OrderItemFactory(product_category_name=ProductCategoryEnum.BURGERS.name, product_id=1)
 
     payload = {
         "order_id": order.id,
-        "product_id": product.id,
+        "product_id": order_item.product_id,
         "quantity": 1,
         "observation": "No onions"
     }
@@ -116,17 +228,14 @@ def test_try_add_item_product_with_different_category_and_return_error(client):
     assert response.status_code == status.HTTP_400_BAD_REQUEST
 
     data = response.json()
-    assert data["detail"]["message"] == "Não é possível adicionar itens da categoria 'drinks' no status atual 'order_waiting_burgers'."
+    assert data["detail"]["message"] == "Não é possível adicionar itens da categoria 'burgers' no status atual 'order_waiting_drinks'."
 
 
 def test_remove_item_and_return_success(client):
     order_status = OrderStatusFactory(status=OrderStatusEnum.ORDER_WAITING_BURGERS.status, description=OrderStatusEnum.ORDER_WAITING_BURGERS.description)
     order = OrderFactory(order_status=order_status)
 
-    category = CategoryFactory(name=ProductCategoryEnum.BURGERS.name, description=ProductCategoryEnum.BURGERS.description)
-    product = ProductFactory(category=category)
-
-    order_item = OrderItemFactory(order=order, product=product)
+    order_item = OrderItemFactory(order=order, product_category_name=ProductCategoryEnum.BURGERS.name, product_id=1)
 
     response = client.delete(
         f"/api/v1/orders/{order.id}/items/{order_item.id}",
@@ -153,10 +262,7 @@ def test_change_item_quantity_and_return_success(client):
     order_status = OrderStatusFactory(status=OrderStatusEnum.ORDER_WAITING_BURGERS.status, description=OrderStatusEnum.ORDER_WAITING_BURGERS.description)
     order = OrderFactory(order_status=order_status)
 
-    category = CategoryFactory(name=ProductCategoryEnum.BURGERS.name, description=ProductCategoryEnum.BURGERS.description)
-    product = ProductFactory(category=category)
-
-    order_item = OrderItemFactory(order=order, product=product)
+    order_item = OrderItemFactory(order=order, product_category_name=ProductCategoryEnum.BURGERS.name, product_id=1)
 
     payload = {
         "order_id": order.id,
@@ -193,10 +299,7 @@ def test_change_item_observation_and_return_success(client):
     order_status = OrderStatusFactory(status=OrderStatusEnum.ORDER_WAITING_BURGERS.status, description=OrderStatusEnum.ORDER_WAITING_BURGERS.description)
     order = OrderFactory(order_status=order_status)
 
-    category = CategoryFactory(name=ProductCategoryEnum.BURGERS.name, description=ProductCategoryEnum.BURGERS.description)
-    product = ProductFactory(category=category)
-
-    order_item = OrderItemFactory(order=order, product=product)
+    order_item = OrderItemFactory(order=order, product_category_name=ProductCategoryEnum.BURGERS.name)
 
     payload = {
         "order_id": order.id,
@@ -233,10 +336,7 @@ def test_list_order_items_and_return_success(client):
     order_status = OrderStatusFactory(status=OrderStatusEnum.ORDER_WAITING_BURGERS.status, description=OrderStatusEnum.ORDER_WAITING_BURGERS.description)
     order = OrderFactory(order_status=order_status)
 
-    category = CategoryFactory(name=ProductCategoryEnum.BURGERS.name, description=ProductCategoryEnum.BURGERS.description)
-    product = ProductFactory(category=category)
-
-    order_item_model = OrderItemFactory(order=order, product=product)
+    order_item_model = OrderItemFactory(order=order, product_category_name=ProductCategoryEnum.BURGERS.name)
 
     response = client.get(f"/api/v1/orders/{order.id}/items")
 
@@ -245,10 +345,8 @@ def test_list_order_items_and_return_success(client):
     order_item = order_item_model.to_entity()
     data = response.json()
     assert len(data) == 1
-    assert data[0]["product"]["category"]["name"] == ProductCategoryEnum.BURGERS.name
-    assert data[0]["product"]["category"]["description"] == ProductCategoryEnum.BURGERS.description
-    assert data[0]["product"]["name"] == product.name
-    assert data[0]["product"]["description"] == product.description
+    assert data[0]["product_category_name"] == ProductCategoryEnum.BURGERS.name
+    assert data[0]["product_name"] == order_item.product_name
     assert data[0]["quantity"] == order_item.quantity
     assert data[0]["observation"] == order_item.observation
     assert data[0]["total"] == order_item.total

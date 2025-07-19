@@ -37,6 +37,7 @@ class Container(containers.DeclarativeContainer):
         OrderController,
         order_gateway=order_gateway,
         order_status_gateway=order_status_gateway,
+        stock_gateway=stock_provider_gateway
     )
 
     order_item_gateway = providers.Factory(OrderItemRepository, db_session=db_session)

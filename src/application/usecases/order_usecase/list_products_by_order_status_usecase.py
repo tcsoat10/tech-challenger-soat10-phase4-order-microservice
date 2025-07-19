@@ -34,7 +34,7 @@ class ListProductsByOrderStatusUseCase:
             OrderStatusEnum.ORDER_WAITING_DRINKS.status: ProductCategoryEnum.DRINKS.name,
             OrderStatusEnum.ORDER_WAITING_DESSERTS.status: ProductCategoryEnum.DESSERTS.name,
         }
-
+        
         category = status_category_map.get(order_status)
         if category is None:
             raise BadRequestException("Não existem produtos disponíveis para este status de pedido.")
