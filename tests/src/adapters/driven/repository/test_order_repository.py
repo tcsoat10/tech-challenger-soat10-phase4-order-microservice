@@ -1,4 +1,5 @@
 import pytest
+from sqlalchemy.exc import IntegrityError
 
 from src.adapters.driven.repositories.models.order_model import OrderModel
 from src.adapters.driven.repositories.order_status_repository import OrderStatusRepository
@@ -52,13 +53,13 @@ class TestOrderRepository:
         assert created_order.order_status.id == order_status.id
         assert created_order.id_employee == employee
 
-    # def test_try_create_order_duplicated_with_repository_and_raise_error(self):
-    #     customer = CustomerFactory()
-    #     order_status = OrderStatusFactory()
-    #     OrderFactory(customer=customer, order_status=order_status)
-    #     order = Order(customer=customer, order_status=order_status)
-    #     with pytest.raises(IntegrityError):
-    #         self.repository.create(order)
+    def test_try_create_order_duplicated_with_repository_and_raise_error(self):
+        
+        #order_status = self.order_status_repository.get_by_status(OrderStatusEnum.ORDER_PENDING.status)
+        #order = Order(customer=customer, order_status=order_status)
+        order = OrderFactory()
+        with pytest.raises(IntegrityError):
+            self.repository.create(order)
 
     def test_get_order_by_customer_id_success(self):
         order = OrderFactory()
@@ -232,7 +233,7 @@ class TestOrderRepository:
         order.cancel_order(self.order_status_repository)
         order = self.repository.update(order)
         assert order.order_status.status == OrderStatusEnum.ORDER_CANCELLED.status
-        assert order.status_history[-1].changed_by == order.customer_name
+        assert order.status_history[-1].changed_by == order.id_customer
 
         with pytest.raises(BadRequestException) as exc:
             order.advance_order_status(self.order_status_repository)
@@ -253,7 +254,7 @@ class TestOrderRepository:
         order = self.repository.update(order)
 
         assert order.order_status.status == OrderStatusEnum.ORDER_CANCELLED.status
-        assert order.status_history[-1].changed_by == order.customer_name
+        assert order.status_history[-1].changed_by == order.id_customer
 
         with pytest.raises(BadRequestException) as exc:
             order.advance_order_status(self.order_status_repository)
