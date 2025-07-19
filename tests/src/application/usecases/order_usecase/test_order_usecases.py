@@ -8,13 +8,9 @@ from src.constants.order_status import OrderStatusEnum
 from src.constants.product_category import ProductCategoryEnum
 
 from src.core.domain.dtos.order_item.create_order_item_dto import CreateOrderItemDTO
-from src.core.domain.dtos.product.create_product_dto import CreateProductDTO
-from src.core.domain.dtos.category.create_category_dto import CreateCategoryDTO
 
 from src.adapters.driven.repositories.order_repository import OrderRepository
 from src.adapters.driven.repositories.order_status_repository import OrderStatusRepository
-from src.adapters.driven.repositories.product_repository import ProductRepository
-from src.adapters.driven.repositories.category_repository import CategoryRepository
 
 from src.application.usecases.order_usecase.create_order_usecase import CreateOrderUseCase
 from src.application.usecases.order_usecase.add_order_item_in_order_usecase import AddOrderItemInOrderUseCase
@@ -28,9 +24,6 @@ from src.application.usecases.order_usecase.revert_order_status_usecase import R
 from src.application.usecases.order_usecase.list_products_by_order_status_usecase import ListProductsByOrderStatusUseCase
 from src.application.usecases.order_usecase.get_order_status_usecase import GetOrderStatusUsecase
 
-from src.application.usecases.category_usecase.create_category_usecase import CreateCategoryUseCase
-from src.application.usecases.product_usecase.create_product_usecase import CreateProductUsecase
-
 
 class TestOrderUseCases:
     
@@ -38,9 +31,7 @@ class TestOrderUseCases:
     def setup(self, db_session, populate_order_status):
         self.order_gateway = OrderRepository(db_session)
         self.order_status_gateway = OrderStatusRepository(db_session)
-        self.product_gateway = ProductRepository(db_session)
-        self.category_gateway = CategoryRepository(db_session)
-        
+
         self.create_order_usecase = CreateOrderUseCase.build(
             order_gateway=self.order_gateway,
             order_status_gateway=self.order_status_gateway,

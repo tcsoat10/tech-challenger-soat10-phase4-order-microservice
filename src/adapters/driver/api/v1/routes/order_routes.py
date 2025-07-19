@@ -7,7 +7,6 @@ from src.adapters.driver.api.v1.controllers.order_controller import OrderControl
 from src.constants.permissions import OrderPermissions
 from src.core.domain.dtos.order_item.create_order_item_dto import CreateOrderItemDTO
 from src.core.domain.dtos.order_item.order_item_dto import OrderItemDTO
-from src.core.domain.dtos.product.product_dto import ProductDTO
 from src.core.domain.dtos.order.order_dto import OrderDTO
 from src.core.domain.dtos.order_status.order_status_dto import OrderStatusDTO
 from src.core.containers import Container
@@ -33,7 +32,7 @@ async def create_order(
 # Listar produtos com base no status do pedido
 @router.get(
     "/orders/{order_id}/products",
-    response_model=List[ProductDTO],
+    response_model=List[OrderItemDTO],
     status_code=status.HTTP_200_OK,
 )
 @inject

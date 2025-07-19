@@ -159,9 +159,9 @@ class Order(BaseEntity):
         
         categorized_items = {category: [] for category in category_sequence}
         for item in self.order_items:
-            category = item.product.category
-            if category.name in categorized_items:
-                categorized_items[category.name].append(item)
+            category_name = item.product_category_name
+            if category_name in categorized_items:
+                categorized_items[category_name].append(item)
             else:
                 raise BadRequestException(f"Item com categoria inválida: {item.product.name}")
 
@@ -203,10 +203,10 @@ class Order(BaseEntity):
             order_snapshot["order_items"] = [
                 {
                     "id": item.id,
-                    "product_id": item.product.id,
-                    "product_name": item.product.name,
+                    "product_id": item.product_id,
+                    "product_name": item.product_name,
                     "quantity": item.quantity,
-                    "unit_price": item.product.price,
+                    "unit_price": item.product_price,
                     "total": item.total,
                     "observation": item.observation,
                 }
@@ -225,7 +225,7 @@ class Order(BaseEntity):
 
     def add_item(self, item: OrderItem) -> None:
         self._validate_status([*PRODUCT_CATEGORY_TO_ORDER_STATUS.values()], "adicionar itens")
-        self._validate_category_for_status(item.product.category.name)
+        self._validate_category_for_status(item.product_category_name)
 
         self.order_items.append(item)
         self._sort_order_items()

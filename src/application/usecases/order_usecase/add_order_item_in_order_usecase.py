@@ -3,18 +3,16 @@ from src.core.domain.entities.order import Order
 from src.core.domain.entities.order_item import OrderItem
 from src.core.exceptions.entity_not_found_exception import EntityNotFoundException
 from src.core.ports.order.i_order_repository import IOrderRepository
-from src.core.ports.product.i_product_repository import IProductRepository
 
 
 class AddOrderItemInOrderUseCase:
-    def __init__(self, order_gateway: IOrderRepository, product_gateway: IProductRepository):
+    def __init__(self, order_gateway: IOrderRepository):
         self.order_gateway = order_gateway
-        self.product_gateway = product_gateway
         
     @classmethod
-    def build(cls, order_gateway: IOrderRepository, product_gateway: IProductRepository) -> 'AddOrderItemInOrderUseCase':
-        return cls(order_gateway, product_gateway)
-    
+    def build(cls, order_gateway: IOrderRepository) -> 'AddOrderItemInOrderUseCase':
+        return cls(order_gateway)
+
     def execute(self, order_id: int, order_item_dto: dict) -> Order:
         order = self.order_gateway.get_by_id(order_id)
         if not order:

@@ -3,12 +3,9 @@ import pytest
 
 from src.constants.product_category import ProductCategoryEnum
 from src.constants.order_status import OrderStatusEnum
-from tests.factories.category_factory import CategoryFactory
 from tests.factories.order_factory import OrderFactory
 from tests.factories.order_item_factory import OrderItemFactory
 from tests.factories.order_status_factory import OrderStatusFactory
-from src.constants.permissions import OrderPermissions
-from tests.factories.product_factory import ProductFactory
 
 
 def test_create_order_success(client, populate_order_status):

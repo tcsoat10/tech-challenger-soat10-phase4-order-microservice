@@ -1,7 +1,5 @@
 from typing import List
-from src.adapters.driven.repositories.models.category_model import CategoryModel
 from src.adapters.driven.repositories.models.order_model import OrderModel
-from src.adapters.driven.repositories.models.product_model import ProductModel
 from src.adapters.driven.repositories.models.order_item_model import OrderItemModel
 from src.core.shared.identity_map import IdentityMap
 from src.core.domain.entities.order_item import OrderItem
@@ -37,8 +35,7 @@ class OrderItemRepository(IOrderItemRepository):
         order_item_model = (
             self.db_session.query(OrderItemModel)
                 .filter(OrderItemModel.order_id == order_id)
-                .join(OrderItemModel.product)
-                .filter(ProductModel.name == product_name)
+                .filter(OrderItemModel.product_name == product_name)
                 .first()
         )
         if order_item_model is None:
@@ -65,7 +62,6 @@ class OrderItemRepository(IOrderItemRepository):
                 self.identity_map.remove(existing_order_item)
 
         order_item_model = OrderItemModel.from_entity(order_item)
-        order_item_model.product = ProductModel.from_entity(order_item.product)
         order_item_model.order = OrderModel.from_entity(order_item.order)
         
         self.db_session.merge(order_item_model)

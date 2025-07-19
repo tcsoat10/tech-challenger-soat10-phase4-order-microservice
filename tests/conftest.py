@@ -1,25 +1,21 @@
-import uuid
 import os
 from faker import Faker
 import pytest
 from typing import Dict, Generator, List, Optional
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy import create_engine, inspect, text
+from sqlalchemy import create_engine
 from alembic.config import Config
 from alembic import command
 from src.core.containers import Container
 from src.constants.order_status import OrderStatusEnum
 from src.app import app
-from config.database import DATABASE, get_db
+from config.database import get_db
 from src.core.shared.identity_map import IdentityMap
 from src.core.utils.jwt_util import JWTUtil
-from tests.factories.category_factory import CategoryFactory
 from tests.factories.order_factory import OrderFactory
 from tests.factories.order_item_factory import OrderItemFactory
 from tests.factories.order_status_factory import OrderStatusFactory
-from tests.factories.product_factory import ProductFactory
-
 
 @pytest.fixture(scope="function")
 def test_engine(tmp_path_factory):
@@ -135,8 +131,6 @@ def setup_factories(db_session):
     Configura as factories para usar a sessão do banco de dados de teste.
     """
     factories = [
-        CategoryFactory,
-        ProductFactory,
         OrderItemFactory,
         OrderStatusFactory,
         OrderFactory,

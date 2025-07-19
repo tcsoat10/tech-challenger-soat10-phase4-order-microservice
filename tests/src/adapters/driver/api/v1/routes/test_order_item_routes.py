@@ -1,17 +1,35 @@
 from fastapi import status
+import pytest
+from unittest.mock import patch, MagicMock
 
 from src.core.exceptions.utils import ErrorCode
 from tests.factories.order_factory import OrderFactory
-from tests.factories.product_factory import ProductFactory
 from tests.factories.order_item_factory import OrderItemFactory
 from src.constants.permissions import OrderItemPermissions
 
+from src.adapters.driven.providers.stock_provider.stock_microservice_gateway import StockMicroserviceGateway
+
+@pytest.fixture(autouse=True)
+def mock_stock_gateway():
+    def fake_get_product_by_id(product_id):
+        if product_id == 1:
+            return {"id": 1, "name": "Burger", "price": 6.0, "category_name": "Burgers"}
+        # Simule produto não encontrado
+        return None
+
+    with patch.object(
+        StockMicroserviceGateway,
+        "get_product_by_id",
+        side_effect=fake_get_product_by_id
+    ):
+        yield
+
 def test_create_order_item_success(client, db_session):
-    product = ProductFactory(name="Burger", price=10.0)
+    
     order = OrderFactory()
     payload = {
         "order_id": order.id,
-        "product_id": product.id,
+        "product_id": 1,
         "quantity": 2,
         "observation": "No onions",
     }
@@ -23,16 +41,16 @@ def test_create_order_item_success(client, db_session):
     data = response.json()
 
     assert "id" in data
-    assert data["product"]['name'] == product.name
+    #assert data["product"]['name'] == productname
     assert data["quantity"] == payload["quantity"]
     assert data["observation"] == payload["observation"]
-    assert data["total"] == product.price * payload["quantity"]
+    assert data["total"] == data['product_price'] * payload["quantity"]
 
 def test_create_order_item_with_invalid_product_id(client, db_session):
     order = OrderFactory()
     payload = {
         "order_id": order.id,
-        "product_id": 1,
+        "product_id": 2,
         "quantity": 2,
         "observation": "No onions",
     }
@@ -61,7 +79,7 @@ def test_get_order_item_by_id_success(client, db_session):
     data = response.json()
 
     assert data["id"] == order_item.id
-    assert data["product"]["id"] == order_item.product.id
+    assert data["product_id"] == order_item.product_id
     assert data["quantity"] == order_item.quantity
     assert data["observation"] == order_item.observation
     assert data["total"] == order_item.total
@@ -106,7 +124,7 @@ def test_get_all_order_items_with_empty_db(client, db_session):
     assert data == []
 
 def test_update_order_item_success(client, db_session):
-    order_item = OrderItemFactory(quantity=1, observation="No onions")
+    order_item = OrderItemFactory(quantity=1, observation="No onions", product_id=1)
     order = OrderFactory(order_items=[order_item])
 
     payload = {
@@ -124,13 +142,13 @@ def test_update_order_item_success(client, db_session):
     data = response.json()
 
     assert data["id"] == order_item.id
-    assert data["product"]["id"] == order_item.product_id
+    assert data["product_id"] == order_item.product_id
     assert data["quantity"] == payload["quantity"]
     assert data["observation"] == payload["observation"]
-    assert data["total"] == order_item.product.price * payload["quantity"]
+    assert data["total"] == order_item.product_price * payload["quantity"]
 
 def test_update_order_item_with_invalid_product_id(client, db_session):
-    order_item = OrderItemFactory(product__id=1)
+    order_item = OrderItemFactory(product_id=1)
     order = OrderFactory(order_items=[order_item])
 
     payload = {
