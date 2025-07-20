@@ -1,4 +1,5 @@
 import pytest
+from sqlalchemy.exc import IntegrityError
 
 from src.adapters.driven.repositories.models.order_model import OrderModel
 from src.adapters.driven.repositories.order_status_repository import OrderStatusRepository
@@ -7,12 +8,9 @@ from src.core.exceptions.bad_request_exception import BadRequestException
 from src.adapters.driven.repositories.order_repository import OrderRepository
 from src.core.domain.entities.order import Order
 from src.constants.order_status import OrderStatusEnum
-from tests.factories.category_factory import CategoryFactory
 from tests.factories.order_factory import OrderFactory
 from tests.factories.order_item_factory import OrderItemFactory
 from tests.factories.order_status_factory import OrderStatusFactory
-from tests.factories.product_factory import ProductFactory
-from unittest.mock import PropertyMock, patch
 
 
 class TestOrderRepository:
@@ -55,13 +53,13 @@ class TestOrderRepository:
         assert created_order.order_status.id == order_status.id
         assert created_order.id_employee == employee
 
-    # def test_try_create_order_duplicated_with_repository_and_raise_error(self):
-    #     customer = CustomerFactory()
-    #     order_status = OrderStatusFactory()
-    #     OrderFactory(customer=customer, order_status=order_status)
-    #     order = Order(customer=customer, order_status=order_status)
-    #     with pytest.raises(IntegrityError):
-    #         self.repository.create(order)
+    def test_try_create_order_duplicated_with_repository_and_raise_error(self):
+        
+        #order_status = self.order_status_repository.get_by_status(OrderStatusEnum.ORDER_PENDING.status)
+        #order = Order(customer=customer, order_status=order_status)
+        order = OrderFactory()
+        with pytest.raises(IntegrityError):
+            self.repository.create(order)
 
     def test_get_order_by_customer_id_success(self):
         order = OrderFactory()
@@ -153,45 +151,41 @@ class TestOrderRepository:
 
         order.advance_order_status(self.order_status_repository)
         order = self.repository.update(order)
-
-        burger_category = CategoryFactory(name=ProductCategoryEnum.BURGERS.name, description=ProductCategoryEnum.BURGERS.description)
+        
         assert order.order_status.status == OrderStatusEnum.ORDER_WAITING_BURGERS.status
 
         order_model = self.db_session.query(OrderModel).filter(OrderModel.id == order.id).first()
         order_item1 = OrderItemFactory(
             order=order_model,
-            product=ProductFactory(category=burger_category)
+            product_category_name=ProductCategoryEnum.BURGERS.name,
         )
         order.add_item(order_item1.to_entity())
         order.advance_order_status(self.order_status_repository)
         
         order = self.repository.update(order)
         assert order.order_status.status == OrderStatusEnum.ORDER_WAITING_SIDES.status
-
-        side_category = CategoryFactory(name=ProductCategoryEnum.SIDES.name, description=ProductCategoryEnum.SIDES.description)
+        
         order_item2 = OrderItemFactory(
             order=order_model,
-            product=ProductFactory(category=side_category)
+            product_category_name=ProductCategoryEnum.SIDES.name,
         )
         order.add_item(order_item2.to_entity())
         order.advance_order_status(self.order_status_repository)
         order = self.repository.update(order)
         assert order.order_status.status == OrderStatusEnum.ORDER_WAITING_DRINKS.status
         
-        drink_category = CategoryFactory(name=ProductCategoryEnum.DRINKS.name, description=ProductCategoryEnum.DRINKS.description)
         order_item3 = OrderItemFactory(
             order=order_model,
-            product=ProductFactory(category=drink_category)
+            product_category_name=ProductCategoryEnum.DRINKS.name
         )
         order.add_item(order_item3.to_entity())
         order.advance_order_status(self.order_status_repository)
         order = self.repository.update(order)
         assert order.order_status.status == OrderStatusEnum.ORDER_WAITING_DESSERTS.status
 
-        dessert_category = CategoryFactory(name=ProductCategoryEnum.DESSERTS.name, description=ProductCategoryEnum.DESSERTS.description)
         order_item4 = OrderItemFactory(
             order=order_model,
-            product=ProductFactory(category=dessert_category)
+            product_category_name=ProductCategoryEnum.DESSERTS.name
         )
         order.add_item(order_item4.to_entity())
         order.advance_order_status(self.order_status_repository)
@@ -224,7 +218,7 @@ class TestOrderRepository:
         assert order.order_status.status == OrderStatusEnum.ORDER_COMPLETED.status
         assert order.status_history[-1].changed_by == order.id_employee
 
-    '''
+    
     def test_cancel_order_cancel_when_status_is_order_pending(self):        
         order = Order(
             id_customer='customer',
@@ -239,7 +233,7 @@ class TestOrderRepository:
         order.cancel_order(self.order_status_repository)
         order = self.repository.update(order)
         assert order.order_status.status == OrderStatusEnum.ORDER_CANCELLED.status
-        assert order.status_history[-1].changed_by == order.customer_name
+        assert order.status_history[-1].changed_by == order.id_customer
 
         with pytest.raises(BadRequestException) as exc:
             order.advance_order_status(self.order_status_repository)
@@ -260,13 +254,13 @@ class TestOrderRepository:
         order = self.repository.update(order)
 
         assert order.order_status.status == OrderStatusEnum.ORDER_CANCELLED.status
-        assert order.status_history[-1].changed_by == order.customer_name
+        assert order.status_history[-1].changed_by == order.id_customer
 
         with pytest.raises(BadRequestException) as exc:
             order.advance_order_status(self.order_status_repository)
 
         assert exc.value.detail['message'] == "O estado atual order_cancelled não permite transições."
-    '''
+    
     def test_cancel_order_cancel_when_status_is_order_paid(self):
         order = Order(
             id_customer='customer',
@@ -384,7 +378,7 @@ class TestOrderRepository:
             order_model = self.db_session.query(OrderModel).filter(OrderModel.id == order.id).first()
             order_item = OrderItemFactory(
                 order=order_model,
-                product=ProductFactory(category=CategoryFactory(name=ProductCategoryEnum.SIDES.name, description=ProductCategoryEnum.SIDES.description))
+                product_category_name=ProductCategoryEnum.SIDES.name
             )
             order.add_item(order_item.to_entity())
         
@@ -403,7 +397,7 @@ class TestOrderRepository:
         order_model = self.db_session.query(OrderModel).filter(OrderModel.id == order.id).first()
         order_item1 = OrderItemFactory(
             order=order_model,
-            product=ProductFactory(category=CategoryFactory(name=ProductCategoryEnum.BURGERS.name, description=ProductCategoryEnum.BURGERS.description))
+            product_category_name=ProductCategoryEnum.BURGERS.name
         )
         order.add_item(order_item1)
         order.advance_order_status(self.order_status_repository)
@@ -412,7 +406,7 @@ class TestOrderRepository:
 
         order_item2 = OrderItemFactory(
             order=order_model,
-            product=ProductFactory(category=CategoryFactory(name=ProductCategoryEnum.SIDES.name, description=ProductCategoryEnum.SIDES.description))
+            product_category_name=ProductCategoryEnum.SIDES.name
         )
         order.add_item(order_item2)
         order.advance_order_status(self.order_status_repository)
@@ -421,7 +415,7 @@ class TestOrderRepository:
 
         order_item3 = OrderItemFactory(
             order=order_model,
-            product=ProductFactory(category=CategoryFactory(name=ProductCategoryEnum.DRINKS.name, description=ProductCategoryEnum.DRINKS.description))
+            product_category_name=ProductCategoryEnum.DRINKS.name
         )
         order.add_item(order_item3)
         order.advance_order_status(self.order_status_repository)
@@ -430,7 +424,7 @@ class TestOrderRepository:
 
         order_item4 = OrderItemFactory(
             order=order_model,
-            product=ProductFactory(category=CategoryFactory(name=ProductCategoryEnum.DESSERTS.name, description=ProductCategoryEnum.DESSERTS.description))
+            product_category_name=ProductCategoryEnum.DESSERTS.name
         )
         order.add_item(order_item4)
         order.advance_order_status(self.order_status_repository)

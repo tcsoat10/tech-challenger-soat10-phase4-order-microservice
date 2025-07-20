@@ -14,14 +14,13 @@ from src.application.usecases.order_usecase.remove_order_item_from_order_usecase
 from src.application.usecases.order_usecase.add_order_item_in_order_usecase import AddOrderItemInOrderUseCase
 from src.application.usecases.order_usecase.get_order_by_id_usecase import GetOrderByIdUseCase
 from src.application.usecases.order_usecase.list_products_by_order_status_usecase import ListProductsByOrderStatusUseCase
-from src.core.domain.dtos.product.product_dto import ProductDTO
 from src.adapters.driver.api.v1.presenters.dto_presenter import DTOPresenter
 from src.application.usecases.order_usecase.create_order_usecase import CreateOrderUseCase
 from src.core.domain.dtos.order.order_dto import OrderDTO
 from src.core.ports.order.i_order_repository import IOrderRepository
 from src.core.ports.order_status.i_order_status_repository import IOrderStatusRepository
-from src.core.ports.product.i_product_repository import IProductRepository
 from src.application.usecases.order_usecase.get_order_status_usecase import GetOrderStatusUsecase
+from src.core.ports.stock.i_stock_provider_gateway import IStockProviderGateway
 
 
 class OrderController:
@@ -29,22 +28,22 @@ class OrderController:
     def __init__(
         self, 
         order_status_gateway: IOrderStatusRepository,        
-        product_gateway: IProductRepository, 
-        order_gateway: IOrderRepository
+        order_gateway: IOrderRepository,
+        stock_gateway: IStockProviderGateway
     ):        
         self.order_status_gateway: IOrderStatusRepository = order_status_gateway
-        self.product_gateway: IProductRepository = product_gateway
         self.order_gateway: IOrderRepository = order_gateway
-        
+        self.stock_gateway: IStockProviderGateway = stock_gateway
+
     def create_order(self, id_customer: str) -> OrderDTO:
         create_order_usecase = CreateOrderUseCase.build(self.order_gateway, self.order_status_gateway)
         order = create_order_usecase.execute(id_customer)
         return DTOPresenter.transform(order, OrderDTO)
 
-    def list_products_by_order_status(self, order_id: int) -> List[ProductDTO]:
-        list_products_by_order_status_usecase = ListProductsByOrderStatusUseCase.build(self.order_gateway, self.product_gateway)
+    def list_products_by_order_status(self, order_id: int) -> List[OrderItemDTO]:
+        list_products_by_order_status_usecase = ListProductsByOrderStatusUseCase.build(self.order_gateway, self.stock_gateway)
         products = list_products_by_order_status_usecase.execute(order_id)
-        return DTOPresenter.transform_list(products, ProductDTO)
+        return DTOPresenter.transform_list(products, OrderItemDTO)
 
     def get_order_by_id(self, order_id: int) -> OrderDTO:
         order_by_id_usecase = GetOrderByIdUseCase.build(self.order_gateway)
@@ -52,7 +51,7 @@ class OrderController:
         return DTOPresenter.transform(order, OrderDTO)
 
     def add_item(self, order_id: int, order_item_dto: dict) -> OrderDTO:
-        add_order_item_in_order_usecase = AddOrderItemInOrderUseCase.build(self.order_gateway, self.product_gateway)
+        add_order_item_in_order_usecase = AddOrderItemInOrderUseCase.build(self.order_gateway, self.stock_gateway)
         order = add_order_item_in_order_usecase.execute(order_id, order_item_dto)
         return DTOPresenter.transform(order, OrderDTO)
         

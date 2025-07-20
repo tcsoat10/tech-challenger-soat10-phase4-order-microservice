@@ -12,17 +12,27 @@ from src.core.domain.dtos.order_item.create_order_item_dto import CreateOrderIte
 from src.core.domain.dtos.order_item.order_item_dto import OrderItemDTO
 from src.core.ports.order.i_order_repository import IOrderRepository
 from src.core.ports.order_item.i_order_item_repository import IOrderItemRepository
-from src.core.ports.product.i_product_repository import IProductRepository
+from src.core.ports.stock.i_stock_provider_gateway import IStockProviderGateway
+
 
 class OrderItemController:
 
-    def __init__(self, order_item_gateway: IOrderItemRepository, product_gateway: IProductRepository, order_gateway: IOrderRepository):
+    def __init__(
+            self,
+            order_item_gateway: IOrderItemRepository,
+            order_gateway: IOrderRepository,
+            stock_gateway: IStockProviderGateway
+    ):
         self.order_item_gateway: IOrderItemRepository = order_item_gateway
-        self.product_gateway: IProductRepository = product_gateway
         self.order_gateway: IOrderRepository = order_gateway
+        self.stock_gateway: IStockProviderGateway = stock_gateway
         
     def create_order_item(self, dto: CreateOrderItemDTO) -> OrderItemDTO:
-        create_order_item_usecase = CreateOrderItemUseCase.build(self.order_item_gateway, self.product_gateway, self.order_gateway)
+        create_order_item_usecase = CreateOrderItemUseCase.build(
+            self.order_item_gateway,
+            self.order_gateway,
+            self.stock_gateway
+        )
         order_item = create_order_item_usecase.execute(dto)
         return DTOPresenter.transform(order_item, OrderItemDTO)
 
@@ -37,7 +47,7 @@ class OrderItemController:
         return DTOPresenter.transform_list(order_items, OrderItemDTO)
 
     def update_order_item(self, order_item_id: int, dto: UpdateOrderItemDTO) -> OrderItemDTO:
-        update_order_item_usecase = UpdateOrderItemUseCase.build(self.order_item_gateway, self.product_gateway)
+        update_order_item_usecase = UpdateOrderItemUseCase.build(self.order_item_gateway, self.stock_gateway)
         order_item = update_order_item_usecase.execute(order_item_id, dto)
         return DTOPresenter.transform(order_item, OrderItemDTO)
     
