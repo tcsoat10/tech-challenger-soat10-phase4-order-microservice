@@ -17,9 +17,17 @@ class PaymentProviderGateway(IPaymentProviderGateway):
         }
     
     def create_payment(self, payment_data: CreatePaymentDTO) -> str:
-        # Aqui você implementaria a lógica para criar um pagamento
-        # utilizando o payment_data fornecido.
-        # Por exemplo, enviar os dados para um serviço externo de pagamento.
+        """
+        Creates a new payment by sending payment data to the external payment service.
+        Args:
+            payment_data (CreatePaymentDTO): The data required to create a payment.
+        Returns:
+            str: The unique identifier of the created payment.
+        Raises:
+            requests.HTTPError: If the HTTP request to the payment service fails.
+            ValueError: If the response does not contain a 'payment_id'.
+        """
+
 
         url = f"{self._base_url}/payment"
         response = requests.post(url, json=payment_data.dict(), headers=self._headers)
