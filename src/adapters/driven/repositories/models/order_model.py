@@ -28,17 +28,21 @@ class OrderModel(BaseModel):
         cascade='all, delete-orphan',
         order_by='OrderStatusMovementModel.changed_at',
     )
+
+    payment_id = Column(String(100), nullable=True)
     
     @classmethod
     def from_entity(cls, order: Order) -> 'OrderModel':
         id_order_status = order.order_status.id if order.order_status else None
         id_customer = order.id_customer if order.id_customer else None
         id_employee = order.id_employee if order.id_employee else None
+        payment_id = order.payment_id if order.payment_id else None
         
         return cls(
             id_customer=id_customer,
             id_order_status=id_order_status,
             id_employee=id_employee,
+            payment_id=payment_id,
             order_items=[OrderItemModel.from_entity(order_item) for order_item in order.order_items],
             status_history=[OrderStatusMovementModel.from_entity(movement) for movement in order.status_history],
             id=order.id,
@@ -63,6 +67,7 @@ class OrderModel(BaseModel):
         order.created_at = self.created_at
         order.updated_at = self.updated_at
         order.inactivated_at = self.inactivated_at
+        order.payment_id = self.payment_id
 
         return order
         
