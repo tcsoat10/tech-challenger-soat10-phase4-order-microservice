@@ -23,6 +23,7 @@ class Order(BaseEntity):
         order_items: List[OrderItem] = [],
         status_history: Optional[List[OrderStatusMovement]] = [],
         id: Optional[int] = None,
+        payment_id: Optional[str] = "",
         created_at: Optional[datetime] = None,
         updated_at: Optional[datetime] = None,
         inactivated_at: Optional[datetime] = None,
@@ -33,6 +34,7 @@ class Order(BaseEntity):
         self.order_status = order_status
         self.order_items = order_items
         self.status_history = status_history
+        self.payment_id = payment_id
         
         initial_status = OrderStatusMovement(
             order=self,
@@ -58,6 +60,14 @@ class Order(BaseEntity):
     @id_employee.setter
     def id_employee(self, value: Optional[str]) -> None:
         self._employee = value
+    
+    @property
+    def payment_id(self) -> Optional[str]:
+        return self._payment_id 
+    
+    @payment_id.setter
+    def payment_id(self, value: Optional[str]) -> None:
+        self._payment_id = value
 
     @property
     def order_status(self) -> OrderStatus:
