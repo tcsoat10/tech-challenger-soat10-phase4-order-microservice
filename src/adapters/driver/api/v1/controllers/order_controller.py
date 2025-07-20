@@ -21,6 +21,7 @@ from src.core.ports.order.i_order_repository import IOrderRepository
 from src.core.ports.order_status.i_order_status_repository import IOrderStatusRepository
 from src.application.usecases.order_usecase.get_order_status_usecase import GetOrderStatusUsecase
 from src.core.ports.stock.i_stock_provider_gateway import IStockProviderGateway
+from src.core.ports.payment.i_payment_provider_gateway import IPaymentProviderGateway
 
 
 class OrderController:
@@ -29,11 +30,13 @@ class OrderController:
         self, 
         order_status_gateway: IOrderStatusRepository,        
         order_gateway: IOrderRepository,
-        stock_gateway: IStockProviderGateway
-    ):        
+        stock_gateway: IStockProviderGateway,
+        payment_gateway: IPaymentProviderGateway
+    ):
         self.order_status_gateway: IOrderStatusRepository = order_status_gateway
         self.order_gateway: IOrderRepository = order_gateway
         self.stock_gateway: IStockProviderGateway = stock_gateway
+        self.payment_gateway: IPaymentProviderGateway = payment_gateway
 
     def create_order(self, id_customer: str) -> OrderDTO:
         create_order_usecase = CreateOrderUseCase.build(self.order_gateway, self.order_status_gateway)
@@ -86,7 +89,9 @@ class OrderController:
         return DTOPresenter.transform_list(orders, OrderDTO)
 
     def advance_order_status(self, order_id: int) -> OrderDTO:
-        advance_status_usecase = AdvanceOrderStatusUseCase.build(self.order_gateway, self.order_status_gateway)
+        advance_status_usecase = AdvanceOrderStatusUseCase.build(
+            self.order_gateway, self.order_status_gateway, self.payment_gateway
+        )
         order = advance_status_usecase.execute(order_id)
         return DTOPresenter.transform(order, OrderDTO)
     

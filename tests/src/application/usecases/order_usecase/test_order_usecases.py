@@ -14,6 +14,7 @@ from src.core.domain.entities.order_item import OrderItem
 from src.adapters.driven.repositories.order_repository import OrderRepository
 from src.adapters.driven.repositories.order_status_repository import OrderStatusRepository
 from src.adapters.driven.providers.stock_provider.stock_microservice_gateway import StockMicroserviceGateway
+from src.adapters.driven.providers.payment_provider.payment_provider_gateway import PaymentProviderGateway
 
 from src.application.usecases.order_usecase.create_order_usecase import CreateOrderUseCase
 from src.application.usecases.order_usecase.add_order_item_in_order_usecase import AddOrderItemInOrderUseCase
@@ -141,6 +142,7 @@ class TestOrderUseCases:
         self.order_gateway = OrderRepository(db_session)
         self.order_status_gateway = OrderStatusRepository(db_session)
         self.stock_gateway = StockMicroserviceGateway()
+        self.payment_gateway = PaymentProviderGateway()  # <-- nome correto
 
         self.create_order_usecase = CreateOrderUseCase.build(
             order_gateway=self.order_gateway,
@@ -168,6 +170,7 @@ class TestOrderUseCases:
         self.advance_order_status_usecase = AdvanceOrderStatusUseCase.build(
             order_gateway=self.order_gateway,
             order_status_gateway=self.order_status_gateway,
+            payment_gateway=self.payment_gateway
         )
         
         self.revert_order_status_usecase = RevertOrderStatusUseCase.build(

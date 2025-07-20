@@ -9,6 +9,7 @@ from src.adapters.driver.api.v1.controllers.order_controller import OrderControl
 from src.adapters.driven.repositories.order_item_repository import OrderItemRepository
 from src.adapters.driver.api.v1.controllers.order_item_controller import OrderItemController
 from src.adapters.driven.providers.stock_provider.stock_microservice_gateway import StockMicroserviceGateway
+from src.adapters.driven.providers.payment_provider.payment_provider_gateway import PaymentProviderGateway
 
 class Container(containers.DeclarativeContainer):
 
@@ -20,6 +21,7 @@ class Container(containers.DeclarativeContainer):
         "src.adapters.driver.api.v1.controllers.order_item_controller",
         "src.adapters.driver.api.v1.routes.order_item_routes",
         "src.adapters.driven.providers.stock_provider.stock_microservice_gateway",
+        "src.adapters.driven.providers.payment_provider.payment_provider_gateway",
     ])
     
     identity_map = providers.Singleton(IdentityMap)
@@ -27,6 +29,7 @@ class Container(containers.DeclarativeContainer):
     db_session = providers.Resource(get_db)
 
     stock_provider_gateway = providers.Singleton(StockMicroserviceGateway)
+    payment_provider_gateway = providers.Singleton(PaymentProviderGateway)
 
 
     order_status_gateway = providers.Factory(OrderStatusRepository, db_session=db_session)
@@ -37,7 +40,8 @@ class Container(containers.DeclarativeContainer):
         OrderController,
         order_gateway=order_gateway,
         order_status_gateway=order_status_gateway,
-        stock_gateway=stock_provider_gateway
+        stock_gateway=stock_provider_gateway,
+        payment_gateway=payment_provider_gateway
     )
 
     order_item_gateway = providers.Factory(OrderItemRepository, db_session=db_session)
