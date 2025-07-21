@@ -1,7 +1,7 @@
 version: '3.8'
 
 networks:
-  tech-challenger-net:
+  order-microservice-net:
     driver: bridge
 
 services:
@@ -14,12 +14,12 @@ services:
         PORT: ${APP_PORT}
     container_name: ${APP_NAME}
     networks:
-      - tech-challenger-net
+      - order-microservice-net
     environment:
-      MYSQL_HOST: "mysql-db"
+      MYSQL_HOST: "order-microservice-db"
 
     depends_on:
-      - mysql-db
+      - order-microservice-db
     env_file:
       - .env
     ports:
@@ -32,18 +32,18 @@ services:
       timeout: 10s
       retries: 5
 
-  mysql-db:
+  order-microservice-db:
     image: mysql:${MYSQL_VERSION}
     container_name: ${MYSQL_CONTAINER_NAME}
     restart: always
     networks:
-      - tech-challenger-net
+      - order-microservice-net
     env_file:
       - .env
     ports:
       - "${MYSQL_PORT}:3306"
     volumes:
-      - mysql-data:/var/lib/mysql
+      - order-microservice-data:/var/lib/mysql
     command: --default-authentication-plugin=mysql_native_password
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
@@ -53,4 +53,4 @@ services:
 
 
 volumes:
-  mysql-data:
+  order-microservice-data:
