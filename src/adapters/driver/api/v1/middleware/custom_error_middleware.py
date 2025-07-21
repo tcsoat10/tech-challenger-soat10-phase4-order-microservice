@@ -44,9 +44,15 @@ class CustomErrorMiddleware:
         }
         status_code = status_code_map.get(type(exc), status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-        error_code = getattr(exc, "detail", {}).get("code", "UNKNOWN_ERROR")
-        message = getattr(exc, "detail", {}).get("message", str(exc))
-        details = getattr(exc, "detail", {}).get("details", {})
+        detail = getattr(exc, "detail", {})
+        if isinstance(detail, dict):
+            error_code = detail.get("code", "UNKNOWN_ERROR")
+            message = detail.get("message", str(exc))
+            details = detail.get("details", {})
+        else:
+            error_code = "UNKNOWN_ERROR"
+            message = str(exc)
+            details = {}
 
         headers = {"WWW-Authenticate": "Bearer"} if status_code in [status.HTTP_401_UNAUTHORIZED, status.HTTP_403_FORBIDDEN] else None
 

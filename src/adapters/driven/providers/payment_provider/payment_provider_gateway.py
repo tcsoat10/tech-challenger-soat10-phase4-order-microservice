@@ -30,7 +30,7 @@ class PaymentProviderGateway(IPaymentProviderGateway):
 
 
         url = f"{self._base_url}/payment"
-        response = requests.post(url, json=payment_data.dict(), headers=self._headers)
+        response = requests.post(url, json=payment_data.model_dump(mode='json'), headers=self._headers)
         response.raise_for_status()
         payment_id = response.json().get("payment_id")
         if not payment_id:
