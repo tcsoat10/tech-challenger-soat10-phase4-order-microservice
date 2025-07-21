@@ -92,138 +92,138 @@ jobs:
           path: coverage.xml
           retention-days: 7
  
-  deploy:
-    name: Deploy to Production
-    needs: build
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+  # deploy:
+  #   name: Deploy to Production
+  #   needs: build
+  #   runs-on: ubuntu-latest
+  #   if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v4
 
-      - name: Set up Python 3.12
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
+  #     - name: Set up Python 3.12
+  #       uses: actions/setup-python@v5
+  #       with:
+  #         python-version: '3.12'
 
-      - name: Install Poetry
-        uses: snok/install-poetry@v1
-        with:
-          version: 1.8.5
-          virtualenvs-create: true
-          virtualenvs-in-project: true
+  #     - name: Install Poetry
+  #       uses: snok/install-poetry@v1
+  #       with:
+  #         version: 1.8.5
+  #         virtualenvs-create: true
+  #         virtualenvs-in-project: true
 
-      - name: Restore Cached Dependencies
-        uses: actions/cache@v4
-        with:
-          path: .venv
-          key: ${{ runner.os }}-poetry-${{ hashFiles('**/poetry.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-poetry-
+  #     - name: Restore Cached Dependencies
+  #       uses: actions/cache@v4
+  #       with:
+  #         path: .venv
+  #         key: ${{ runner.os }}-poetry-${{ hashFiles('**/poetry.lock') }}
+  #         restore-keys: |
+  #           ${{ runner.os }}-poetry-
       
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v3
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
-          aws-region: ${{ env.REGION_DEFAULT }}
+  #     - name: Configure AWS Credentials
+  #       uses: aws-actions/configure-aws-credentials@v3
+  #       with:
+  #         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  #         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  #         aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+  #         aws-region: ${{ env.REGION_DEFAULT }}
       
-      - name: Login to ECR
-        run: |
-          aws ecr get-login-password --region ${{ env.REGION_DEFAULT }} | docker login --username AWS --password-stdin ${{ env.AWS_ECR_REGISTRY }}
+  #     - name: Login to ECR
+  #       run: |
+  #         aws ecr get-login-password --region ${{ env.REGION_DEFAULT }} | docker login --username AWS --password-stdin ${{ env.AWS_ECR_REGISTRY }}
 
-      - name: Build and Push Docker Image
-        id: build-image
-        run: |
-          # Build and push Docker image
-          docker build --no-cache -t tech-challenge-api:latest .
-          docker tag tech-challenge-api:latest ${{ env.AWS_ECR_REGISTRY }}/${{ env.PROJECT_NAME }}:latest
-          docker push ${{ env.AWS_ECR_REGISTRY }}/${{ env.PROJECT_NAME }}:latest
+  #     - name: Build and Push Docker Image
+  #       id: build-image
+  #       run: |
+  #         # Build and push Docker image
+  #         docker build --no-cache -t order-microservice-api:latest .
+  #         docker tag order-microservice-api:latest ${{ env.AWS_ECR_REGISTRY }}/${{ env.PROJECT_NAME }}:latest
+  #         docker push ${{ env.AWS_ECR_REGISTRY }}/${{ env.PROJECT_NAME }}:latest
 
-      - name: Get kubeconfig
-        id: get-kubeconfig
-        run: |
-          echo "Get kubeconfig"
-          aws eks --region ${{ env.REGION_DEFAULT }} update-kubeconfig --name ${{ secrets.AWS_EKS_CLUSTER_NAME }}
-          kubectl cluster-info
+  #     - name: Get kubeconfig
+  #       id: get-kubeconfig
+  #       run: |
+  #         echo "Get kubeconfig"
+  #         aws eks --region ${{ env.REGION_DEFAULT }} update-kubeconfig --name ${{ secrets.AWS_EKS_CLUSTER_NAME }}
+  #         kubectl cluster-info
 
-      # - name: Patch & apply Deployment com envsubst
-      #   working-directory: config_k8s
-      #   run: |
-      #     export IMAGE="${{ env.AWS_ECR_REGISTRY }}/${{ env.PROJECT_NAME }}:latest"
-      #     envsubst < tech-challenger-src.yaml | kubectl apply -f -
+  #     # - name: Patch & apply Deployment com envsubst
+  #     #   working-directory: config_k8s
+  #     #   run: |
+  #     #     export IMAGE="${{ env.AWS_ECR_REGISTRY }}/${{ env.PROJECT_NAME }}:latest"
+  #     #     envsubst < order-microservice-src.yaml | kubectl apply -f -
 
-      - name: Replace image path in Deployment
-        working-directory: config_k8s
-        run: |
-          sed -i 's|${IMAGE}|${{ env.AWS_ECR_REGISTRY }}/${{ env.PROJECT_NAME }}:latest|g' tech-challenger-src.yaml
+  #     - name: Replace image path in Deployment
+  #       working-directory: config_k8s
+  #       run: |
+  #         sed -i 's|${IMAGE}|${{ env.AWS_ECR_REGISTRY }}/${{ env.PROJECT_NAME }}:latest|g' order-microservice-src.yaml
 
-      - name: Deploy Application
-        working-directory: config_k8s
-        run: |
-          kubectl create secret generic application-secrets \
-            --from-literal=SECRET_KEY=${{ secrets.SECRET_KEY }} \
-            --dry-run=client -o yaml | kubectl apply -f -
+  #     - name: Deploy Application
+  #       working-directory: config_k8s
+  #       run: |
+  #         kubectl create secret generic application-secrets \
+  #           --from-literal=SECRET_KEY=${{ secrets.SECRET_KEY }} \
+  #           --dry-run=client -o yaml | kubectl apply -f -
 
-          kubectl create secret generic mysql-secrets \
-            --from-literal=MYSQL_DATABASE=${{ secrets.MYSQL_DATABASE }} \
-            --from-literal=MYSQL_USER=${{ secrets.MYSQL_USER }} \
-            --from-literal=MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }} \
-            --from-literal=MYSQL_HOST=${{ secrets.MYSQL_HOST }} \
-            --from-literal=MYSQL_PORT=${{ secrets.MYSQL_PORT }} \
-            --dry-run=client -o yaml | kubectl apply -f -
+  #         kubectl create secret generic mysql-secrets \
+  #           --from-literal=MYSQL_DATABASE=${{ secrets.MYSQL_DATABASE }} \
+  #           --from-literal=MYSQL_USER=${{ secrets.MYSQL_USER }} \
+  #           --from-literal=MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }} \
+  #           --from-literal=MYSQL_HOST=${{ secrets.MYSQL_HOST }} \
+  #           --from-literal=MYSQL_PORT=${{ secrets.MYSQL_PORT }} \
+  #           --dry-run=client -o yaml | kubectl apply -f -
 
-          kubectl create secret generic mercadopago-secrets \
-            --from-literal=MERCADO_PAGO_ACCESS_TOKEN=${{ secrets.MERCADO_PAGO_ACCESS_TOKEN }} \
-            --from-literal=MERCADO_PAGO_USER_ID=${{ secrets.MERCADO_PAGO_USER_ID }} \
-            --from-literal=MERCADO_PAGO_POS_ID=${{ secrets.MERCADO_PAGO_POS_ID }} \
-            --dry-run=client -o yaml | kubectl apply -f -
+  #         kubectl create secret generic mercadopago-secrets \
+  #           --from-literal=MERCADO_PAGO_ACCESS_TOKEN=${{ secrets.MERCADO_PAGO_ACCESS_TOKEN }} \
+  #           --from-literal=MERCADO_PAGO_USER_ID=${{ secrets.MERCADO_PAGO_USER_ID }} \
+  #           --from-literal=MERCADO_PAGO_POS_ID=${{ secrets.MERCADO_PAGO_POS_ID }} \
+  #           --dry-run=client -o yaml | kubectl apply -f -
 
-          kubectl delete -f svc-tech-challenger.yaml --ignore-not-found
-          kubectl delete -f tech-challenger-src.yaml --ignore-not-found
+  #         kubectl delete -f svc-order-microservice.yaml --ignore-not-found
+  #         kubectl delete -f order-microservice-src.yaml --ignore-not-found
 
-          kubectl apply -f svc-tech-challenger.yaml
+  #         kubectl apply -f svc-order-microservice.yaml
 
-          echo "Aguardando LoadBalancer receber hostname..."
-          for i in {1..30}; do
-            WEBHOOK_URL=$(kubectl get svc tech-challenger-svc -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
-            if [ -n "$WEBHOOK_URL" ]; then
-              echo "LoadBalancer hostname: $WEBHOOK_URL"
-              break
-            fi
-            echo "Ainda aguardando..."
-            sleep 10
-          done
+  #         echo "Aguardando LoadBalancer receber hostname..."
+  #         for i in {1..30}; do
+  #           WEBHOOK_URL=$(kubectl get svc order-microservice-svc -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
+  #           if [ -n "$WEBHOOK_URL" ]; then
+  #             echo "LoadBalancer hostname: $WEBHOOK_URL"
+  #             break
+  #           fi
+  #           echo "Ainda aguardando..."
+  #           sleep 10
+  #         done
 
-          if [ -z "$WEBHOOK_URL" ]; then
-            echo "Erro: LoadBalancer não recebeu hostname a tempo."
-            exit 1
-          fi
+  #         if [ -z "$WEBHOOK_URL" ]; then
+  #           echo "Erro: LoadBalancer não recebeu hostname a tempo."
+  #           exit 1
+  #         fi
 
-          kubectl create secret generic webhook-secrets \
-            --from-literal=WEBHOOK_URL="http://$WEBHOOK_URL" \
-            --dry-run=client -o yaml | kubectl apply -f -
+  #         kubectl create secret generic webhook-secrets \
+  #           --from-literal=WEBHOOK_URL="http://$WEBHOOK_URL" \
+  #           --dry-run=client -o yaml | kubectl apply -f -
 
-          API_ID=$(aws apigatewayv2 get-apis --query "Items[?Name=='lambda_auth'].ApiId" --output text)
-          if [ -z "$API_ID" ]; then
-            echo "API Gateway não encontrada"
-            exit 1
-          fi
-          APIGW_URL=$(aws apigatewayv2 get-api --api-id $API_ID --query "ApiEndpoint" --output text)
-          echo "API Gateway URL: $APIGW_URL"
-          echo "APIGW_URL=$APIGW_URL" >> $GITHUB_ENV
+  #         API_ID=$(aws apigatewayv2 get-apis --query "Items[?Name=='lambda_auth'].ApiId" --output text)
+  #         if [ -z "$API_ID" ]; then
+  #           echo "API Gateway não encontrada"
+  #           exit 1
+  #         fi
+  #         APIGW_URL=$(aws apigatewayv2 get-api --api-id $API_ID --query "ApiEndpoint" --output text)
+  #         echo "API Gateway URL: $APIGW_URL"
+  #         echo "APIGW_URL=$APIGW_URL" >> $GITHUB_ENV
 
-          kubectl create secret generic apigateway-secrets \
-            --from-literal=APIGW_URL="$APIGW_URL" \
-            --dry-run=client -o yaml | kubectl apply -f -
+  #         kubectl create secret generic apigateway-secrets \
+  #           --from-literal=APIGW_URL="$APIGW_URL" \
+  #           --dry-run=client -o yaml | kubectl apply -f -
 
-          kubectl apply -f configmap.yaml
-          kubectl apply -f hpa.yaml
-          kubectl apply -f tech-challenger-src.yaml
+  #         kubectl apply -f configmap.yaml
+  #         kubectl apply -f hpa.yaml
+  #         kubectl apply -f order-microservice-src.yaml
 
-      - name: Verify Deployment
-        run: |
-          kubectl get all
+  #     - name: Verify Deployment
+  #       run: |
+  #         kubectl get all
 

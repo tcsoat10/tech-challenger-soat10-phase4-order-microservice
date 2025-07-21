@@ -28,7 +28,6 @@ class PaymentProviderGateway(IPaymentProviderGateway):
             ValueError: If the response does not contain a 'payment_id'.
         """
 
-
         url = f"{self._base_url}/payment"
         response = requests.post(url, json=payment_data.model_dump(mode='json'), headers=self._headers)
         response.raise_for_status()

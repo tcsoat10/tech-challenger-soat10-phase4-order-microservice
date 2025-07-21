@@ -45,17 +45,16 @@ class CreateOrderUseCase:
             OrderStatusEnum.ORDER_READY_TO_PLACE.status   
         ]
         
-        '''
         open_orders = self.order_gateway.get_all(status=open_statuses, customer_id=customer, include_deleted=False)
         if open_orders:
             raise BadRequestException("Já existe um pedido em aberto para este cliente")
-        '''
         
         order_status = self.order_status_gateway.get_by_status(OrderStatusEnum.ORDER_PENDING.status)
         if not order_status:
             raise EntityNotFoundException(entity_name="OrderStatus")
         
         '''
+        # TODO: Fetch customer from the auth service
         customer = self.customer_gateway.get_by_id(int(current_user['person']['id']))
         if not customer:
             raise EntityNotFoundException(entity_name="Customer")
