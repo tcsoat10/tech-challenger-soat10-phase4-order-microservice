@@ -1,7 +1,6 @@
 
-from src.constants.order_transition import STATUS_ALLOWED_ACCESS_ONLY_CUSTOMER, STATUS_ALLOWED_ACCESS_ONLY_EMPLOYEE
+import os
 from src.core.domain.entities.order import Order
-from src.core.exceptions.bad_request_exception import BadRequestException
 from src.core.exceptions.entity_not_found_exception import EntityNotFoundException
 from src.core.ports.order.i_order_repository import IOrderRepository
 from src.core.ports.order_status.i_order_status_repository import IOrderStatusRepository
@@ -46,7 +45,7 @@ class AdvanceOrderStatusUseCase:
                 payment_method="qr_code",
                 total_amount=order.total,
                 currency="BRL",
-                notification_url="https://example.com/callback",
+                notification_url=os.getenv("PAYMENT_NOTIFICATION_URL"),
                 items=order.order_items,
                 customer=order.id_customer,
             )

@@ -4,6 +4,7 @@ from config.database import get_db
 from src.core.shared.identity_map import IdentityMap
 from src.adapters.driven.repositories.order_status_repository import OrderStatusRepository
 from src.adapters.driver.api.v1.controllers.order_status_controller import OrderStatusController
+from src.adapters.driver.api.v1.controllers.webhook_controller import WebhookController
 from src.adapters.driven.repositories.order_repository import OrderRepository
 from src.adapters.driver.api.v1.controllers.order_controller import OrderController
 from src.adapters.driven.repositories.order_item_repository import OrderItemRepository
@@ -20,6 +21,7 @@ class Container(containers.DeclarativeContainer):
         "src.adapters.driver.api.v1.routes.order_routes",
         "src.adapters.driver.api.v1.controllers.order_item_controller",
         "src.adapters.driver.api.v1.routes.order_item_routes",
+        "src.adapters.driver.api.v1.controllers.webhook_controller",
         "src.adapters.driven.providers.stock_provider.stock_microservice_gateway",
         "src.adapters.driven.providers.payment_provider.payment_provider_gateway",
     ])
@@ -41,6 +43,13 @@ class Container(containers.DeclarativeContainer):
         order_gateway=order_gateway,
         order_status_gateway=order_status_gateway,
         stock_gateway=stock_provider_gateway,
+        payment_gateway=payment_provider_gateway
+    )
+
+    webhook_controller = providers.Factory(
+        WebhookController,
+        order_gateway=order_gateway,
+        order_status_gateway=order_status_gateway,
         payment_gateway=payment_provider_gateway
     )
 
