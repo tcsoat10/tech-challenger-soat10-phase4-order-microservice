@@ -12,9 +12,12 @@ class GetOrderByIdUseCase:
     def build(order_gateway: IOrderRepository):
         return GetOrderByIdUseCase(order_gateway)
 
-    def execute(self, order_id: int) -> Order:
+    def execute(self, order_id: int, current_user: dict) -> Order:
         order = self.order_gateway.get_by_id(order_id)
         if not order:
+            raise EntityNotFoundException(message=f"O pedido com ID '{order_id}' não foi encontrado.")
+
+        if current_user['profile']['name'] in ['customer', 'anonymous'] and order.id_customer != current_user['person']['id']:
             raise EntityNotFoundException(message=f"O pedido com ID '{order_id}' não foi encontrado.")
         
         return order

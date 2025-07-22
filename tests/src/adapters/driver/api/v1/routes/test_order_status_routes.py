@@ -10,7 +10,6 @@ from src.constants.permissions import OrderStatusPermissions
     {"status": "ATIVO", "description": "TESTE DE STATUS ATIVO"},
     {"status": "INATIVO", "description": "TESTE DE STATUS INATIVO"},
 ])
-
 def test_create_order_status_success(client, db_session, payload):
     response = client.post("/api/v1/order_status", json=payload, permissions=[OrderStatusPermissions.CAN_CREATE_ORDER_STATUS])
 

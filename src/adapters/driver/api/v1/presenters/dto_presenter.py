@@ -17,3 +17,7 @@ class DTOPresenter(Generic[T, D]):
     @staticmethod
     def transform_from_dict(data: Dict[str, Any], dto_class: Type[D]) -> D:
         return dto_class.from_dict(data)
+    
+    @staticmethod
+    def transform_list_from_dict(data_list: List[Dict[str, Any]], dto_class: Type[D]) -> List[D]:
+        return [DTOPresenter.transform_from_dict(data, dto_class) for data in data_list]

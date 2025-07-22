@@ -14,6 +14,7 @@ class AuthMiddleware(BaseHTTPMiddleware):
             "/redoc",
             "/api/v1/auth/token",
             "/api/v1/health",
+            "/webhook/payment_notification"
         ]
         if any(request.url.path.startswith(route) for route in open_routes):
             return await call_next(request)
