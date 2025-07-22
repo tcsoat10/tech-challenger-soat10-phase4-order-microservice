@@ -17,16 +17,16 @@ class ListProductsByOrderStatusUseCase:
     def build(cls, order_gateway: IOrderRepository, stock_provider_gateway: IStockProviderGateway) -> 'ListProductsByOrderStatusUseCase':
         return cls(order_gateway, stock_provider_gateway)
 
-    def execute(self, order_id: int) -> List[Dict[str, Any]]:
+    def execute(self, order_id: int, current_user: dict) -> List[Dict[str, Any]]:
         order = self.order_gateway.get_by_id(order_id)
         if order is None:
             raise EntityNotFoundException(message=f"O pedido com ID '{order_id}' não foi encontrado.")
-        '''
+
         profile_name = current_user.get('profile', {}).get('name')
         person_id = current_user.get('person', {}).get('id')
-        if profile_name in ['customer', 'anonymous'] and order.customer.id != int(person_id or 0):
+        if profile_name in ['customer', 'anonymous'] and order.id_customer != person_id:
             raise EntityNotFoundException(message=f"O pedido com ID '{order_id}' não foi encontrado.")
-        '''
+
         order_status = order.order_status.status
         status_category_map = {
             OrderStatusEnum.ORDER_WAITING_BURGERS.status: ProductCategoryEnum.BURGERS.name,

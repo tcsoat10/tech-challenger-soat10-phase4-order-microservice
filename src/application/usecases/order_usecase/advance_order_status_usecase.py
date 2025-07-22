@@ -29,7 +29,7 @@ class AdvanceOrderStatusUseCase:
     ) -> 'AdvanceOrderStatusUseCase':
         return cls(order_gateway, order_status_gateway, payment_gateway)
 
-    def execute(self, order_id: int) -> Order:
+    def execute(self, order_id: int, current_user: dict) -> Order:
         order = self.order_gateway.get_by_id(order_id)
         if not order:
             raise EntityNotFoundException(message=f"O pedido com ID '{order_id}' não foi encontrado.")
@@ -45,7 +45,7 @@ class AdvanceOrderStatusUseCase:
                 payment_method="qr_code",
                 total_amount=order.total,
                 currency="BRL",
-                notification_url=os.getenv("PAYMENT_NOTIFICATION_URL"),
+                notification_url=f"{os.getenv('PAYMENT_NOTIFICATION_URL')}?api_key={os.getenv('ORDER_MICROSERVICE_X_API_KEY')}",
                 items=order.order_items,
                 customer=order.id_customer,
             )

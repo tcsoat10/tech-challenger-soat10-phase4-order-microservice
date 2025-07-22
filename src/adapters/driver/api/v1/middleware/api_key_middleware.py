@@ -6,7 +6,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.routing import Match
 
 class ApiKeyMiddleware(BaseHTTPMiddleware):
-    """Middleware para validar a chave de API (x-api-key) apenas em rotas específicas."""
+    """Middleware para validar a chave de API (x-api-key) como parâmetro na URL em rotas específicas."""
 
     INCLUDED_PATHS: List[str] = [
         "/webhook/payment_notification",
@@ -25,7 +25,8 @@ class ApiKeyMiddleware(BaseHTTPMiddleware):
                 break
 
         order_microservice_x_api_key = os.getenv("ORDER_MICROSERVICE_X_API_KEY")
-        api_key = request.headers.get("x-api-key")
+        # Obtém a API key do parâmetro de query na URL
+        api_key = request.query_params.get("api_key")
 
         if not order_microservice_x_api_key:
             return JSONResponse(

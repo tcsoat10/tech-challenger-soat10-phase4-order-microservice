@@ -21,7 +21,7 @@ class CreateOrderUseCase:
     ) -> 'CreateOrderUseCase':
         return cls(order_gateway, order_status_gateway)
     
-    def execute(self, customer: str) -> Order:
+    def execute(self, customer_id: str) -> Order:
         """
         Creates a new order for the current user if no open orders exist.
 
@@ -44,8 +44,8 @@ class CreateOrderUseCase:
             OrderStatusEnum.ORDER_WAITING_DESSERTS.status,
             OrderStatusEnum.ORDER_READY_TO_PLACE.status   
         ]
-        
-        open_orders = self.order_gateway.get_all(status=open_statuses, customer_id=customer, include_deleted=False)
+
+        open_orders = self.order_gateway.get_all(status=open_statuses, customer_id=customer_id, include_deleted=False)
         if open_orders:
             raise BadRequestException("Já existe um pedido em aberto para este cliente")
         
@@ -61,7 +61,7 @@ class CreateOrderUseCase:
         '''
 
         order = Order(
-            id_customer=customer,
+            id_customer=customer_id,
             order_status=order_status
         )
         

@@ -12,7 +12,7 @@ class StockMicroserviceGateway(IStockProviderGateway):
     """Gateway for interacting with the Stock Microservice."""
     
     def __init__(self):
-        self._base_url = os.getenv("STOCK_MICROSERVICE_URL")
+        self._base_url = os.getenv("STOCK_MICROSERVICE_URL", "http://localhost:8003/api/v1")
         self._headers = {
             "Content-Type": "application/json",
             "x-api-key": os.getenv("STOCK_MICROSERVICE_API_KEY")
@@ -84,7 +84,7 @@ class StockMicroserviceGateway(IStockProviderGateway):
     def get_category_by_name(self, category_name: str) -> Dict[str, Any]:
         """Retrieve a category by its name."""
         response = requests.get(f"{self._base_url}/categories", headers=self._headers, params={"name": category_name})
-
+        
         if response.status_code == HTTPStatus.NOT_FOUND:
             raise EntityNotFoundException(message="Categoria não encontrada", id=category_name)
         response.raise_for_status()

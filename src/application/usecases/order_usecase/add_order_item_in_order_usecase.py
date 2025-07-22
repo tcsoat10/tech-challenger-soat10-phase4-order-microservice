@@ -17,21 +17,26 @@ class AddOrderItemInOrderUseCase:
     ) -> 'AddOrderItemInOrderUseCase':
         return cls(order_gateway, stock_gateway)
 
-    def execute(self, order_id: int, order_item_dto: dict) -> Order:
+    def execute(self, order_id: int, order_item_dto: dict, current_user: dict) -> Order:
         order = self.order_gateway.get_by_id(order_id)
         if not order:
             raise EntityNotFoundException(message=f"O pedido com ID '{order_id}' não foi encontrado.")
 
-        item = self.stock_gateway.get_product_by_id(order_item_dto.product_id)
-        if not item:
+        if current_user['profile']['name'] in ['customer', 'anonymous'] and order.id_customer != current_user['person']['id']:
+            raise EntityNotFoundException(message=f"O pedido com ID '{order_id}' não foi encontrado.")
+
+        product = self.stock_gateway.get_product_by_id(order_item_dto.product_id)
+        if not product:
             raise EntityNotFoundException(f"Product ID '{order_item_dto.product_id}'")
-        
+
         order_item = OrderItem(
             order=order,
-            product_id=item.product_id,
+            product_id=product['id'],
+            product_name=product['name'],
+            product_price=product['price'],
             quantity=order_item_dto.quantity,
             observation=order_item_dto.observation,
-            product_category_name=item.product_category_name
+            product_category_name=product['category']['name'] if 'category' in product else None
         )
         order.add_item(order_item)
 

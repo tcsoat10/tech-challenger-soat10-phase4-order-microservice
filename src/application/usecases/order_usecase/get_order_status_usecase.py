@@ -10,11 +10,11 @@ class GetOrderStatusUsecase():
     @classmethod
     def build(cls, order_gateway: IOrderRepository) -> 'GetOrderStatusUsecase':
         return GetOrderStatusUsecase(order_gateway)
-    
-    def execute(self, order_id: int) -> OrderStatus:
+
+    def execute(self, order_id: int, current_user: dict) -> OrderStatus:
         get_order_by_id_usecase = GetOrderByIdUseCase.build(self.order_gateway)
         
-        order = get_order_by_id_usecase.execute(order_id)
+        order = get_order_by_id_usecase.execute(order_id, current_user)
 
         return order.order_status
         

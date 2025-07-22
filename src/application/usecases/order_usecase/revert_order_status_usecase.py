@@ -16,7 +16,7 @@ class RevertOrderStatusUseCase:
     def build(cls, order_gateway: IOrderRepository, order_status_gateway: IOrderStatusRepository) -> 'RevertOrderStatusUseCase':
         return cls(order_gateway, order_status_gateway)
     
-    def execute(self, order_id: int) -> Order:
+    def execute(self, order_id: int, current_user: dict) -> Order:
         order = self.order_gateway.get_by_id(order_id)
         if not order:
             raise EntityNotFoundException(message=f"O pedido com ID '{order_id}' não foi encontrado.")

@@ -40,7 +40,7 @@ def test_engine(tmp_path_factory):
         pytest.fail(f"Erro ao aplicar migrações Alembic no SQLite: {e}")
 
     yield engine
-    engine.dispose() # Fecha conexões, arquivo é removido pelo pytest
+    engine.dispose()
 
 
 @pytest.fixture(scope="function")
@@ -53,7 +53,7 @@ def db_session(test_engine):
         try:
             yield session
         finally:
-            pass # Sessão é fechada no finally principal
+            pass
 
     app.dependency_overrides[get_db] = override_get_db
     container = Container()
