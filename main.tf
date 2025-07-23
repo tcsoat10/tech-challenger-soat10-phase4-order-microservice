@@ -3,7 +3,11 @@ provider "aws" {
 }
 
 terraform {
-  backend "s3" {}
+  backend "s3" {
+    bucket = "NOME_DO_BUCKET"
+    key    = "order-microservice/terraform.tfstate"
+    region = "us-east-1"
+  }
 }
 
 # Grupo de Segurança

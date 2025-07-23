@@ -93,7 +93,7 @@ jobs:
           retention-days: 7
   
   deploy:
-    name: Deploy com Terraform
+    name: Deploy with Terraform
     needs: test
     runs-on: ubuntu-latest
     environment: production
