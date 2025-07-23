@@ -1,5 +1,5 @@
 provider "aws" {
-  region = var.aws_region 
+  region = var.aws_region
 }
 
 data "aws_caller_identity" "current" {}
@@ -13,8 +13,8 @@ data "aws_vpc" "vpc" {
 
 # Grupo de Segurança
 resource "aws_security_group" "eks_sg" {
-  name        = "${var.cluster_name}-sg"
-  vpc_id      = data.aws_vpc.vpc.id
+  name   = "${var.cluster_name}-sg"
+  vpc_id = data.aws_vpc.vpc.id
   # Regras de entrada
   ingress {
     from_port   = 0
