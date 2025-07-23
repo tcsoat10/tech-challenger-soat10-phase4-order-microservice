@@ -2,11 +2,12 @@ provider "aws" {
   region = var.aws_region 
 }
 
-terraform {
-  backend "s3" {
-    bucket = "NOME_DO_BUCKET"
-    key    = "order-microservice/terraform.tfstate"
-    region = "us-east-1"
+data "aws_caller_identity" "current" {}
+
+data "aws_vpc" "vpc" {
+  filter {
+    name   = "isDefault"
+    values = ["true"]
   }
 }
 
@@ -30,12 +31,19 @@ resource "aws_security_group" "eks_sg" {
   }
 }
 
+data "aws_subnets" "subnet" {
+  filter {
+    name   = "vpc-id"
+    values = [data.aws_vpc.vpc.id]
+  }
+}
+
 # Definição do cluster EKS
 resource "aws_eks_cluster" "cluster" {
   name     = var.cluster_name
   role_arn = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/LabRole"
   vpc_config {
-    subnet_ids         = [for subnet in data.aws_subnet.subnet : subnet.id if subnet.availability_zone != "${var.aws_region}e"]
+    subnet_ids         = data.aws_subnets.subnet.ids
     security_group_ids = [aws_security_group.eks_sg.id]
   }
   access_config {
@@ -64,7 +72,7 @@ resource "aws_eks_node_group" "eks-node" {
   cluster_name    = aws_eks_cluster.cluster.name
   node_group_name = var.node_name
   node_role_arn   = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/LabRole"
-  subnet_ids      = [for subnet in data.aws_subnet.subnet : subnet.id if subnet.availability_zone != "${var.aws_region}e"]
+  subnet_ids      = data.aws_subnets.subnet.ids
   disk_size       = 30
   instance_types  = [var.instance_type]
 
