@@ -43,7 +43,7 @@ resource "aws_eks_cluster" "cluster" {
   name     = var.cluster_name
   role_arn = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/LabRole"
   vpc_config {
-    subnet_ids         = data.aws_subnets.subnet.ids
+    subnet_ids         = [for subnet in data.aws_subnets : subnet.id if subnet.availability_zone != "${var.aws_region}e"]
     security_group_ids = [aws_security_group.eks_sg.id]
   }
   access_config {
@@ -72,7 +72,7 @@ resource "aws_eks_node_group" "eks-node" {
   cluster_name    = aws_eks_cluster.cluster.name
   node_group_name = var.node_name
   node_role_arn   = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/LabRole"
-  subnet_ids      = data.aws_subnets.subnet.ids
+  subnet_ids      = [for subnet in data.aws_subnets : subnet.id if subnet.availability_zone != "${var.aws_region}e"]
   disk_size       = 30
   instance_types  = [var.instance_type]
 
