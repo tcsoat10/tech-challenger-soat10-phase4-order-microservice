@@ -7,7 +7,6 @@ from http import HTTPStatus
 import requests
 
 
-
 class StockMicroserviceGateway(IStockProviderGateway):
     """Gateway for interacting with the Stock Microservice."""
     
@@ -15,30 +14,21 @@ class StockMicroserviceGateway(IStockProviderGateway):
         self._base_url = os.getenv("STOCK_MICROSERVICE_URL", "http://localhost:8003/api/v1")
         self._headers = {
             "Content-Type": "application/json",
-            "x-api-key": os.getenv("STOCK_MICROSERVICE_API_KEY")
+            "x-api-key": os.getenv("STOCK_MICROSERVICE_X_API_KEY")
         }
 
     def get_product_by_id(self, product_id: str) -> Dict[str, Any]:
         """Retrieve a product by its ID."""
-        response = requests.get(f"{self._base_url}/products/{product_id}", headers=self._headers)
+        response = requests.get(f"{self._base_url}/products/{product_id}/id", headers=self._headers)
         
         if response.status_code != HTTPStatus.OK:
             raise EntityNotFoundException(message="Produto não encontrado", id=product_id)
         
         return response.json()
     
-    def get_products_by_ids(self, product_ids: List[str]) -> List[Dict[str, Any]]:
-        """Retrieve multiple stock_microservice_gateway.pyproducts by their IDs."""
-        response = requests.post(f"{self._base_url}/products/batch", json={"ids": product_ids}, headers=self._headers)
-        
-        if response.status_code != HTTPStatus.OK:
-            raise EntityNotFoundException(message="Produtos não encontrados", entity="Products", ids=product_ids)
-        
-        return response.json()
-    
-    def get_products_by_category_id(self, category_id: str) -> List[Dict[str, Any]]:
+    def get_products_by_category_name(self, category_name: str) -> List[Dict[str, Any]]:
         """Retrieve products by their category."""
-        response = requests.get(f"{self._base_url}/categories/{category_id}/products", headers=self._headers)
+        response = requests.get(f"{self._base_url}/categories/{category_name}/products", headers=self._headers)
         
         if response.status_code == HTTPStatus.NOT_FOUND:
             return []
@@ -49,7 +39,7 @@ class StockMicroserviceGateway(IStockProviderGateway):
     def get_product_by_name(self, name: str) -> Dict[str, Any]:
         """Retrieve a product by its name."""
         # Assuming the endpoint returns a list and we want the first match.
-        response = requests.get(f"{self._base_url}/products", headers=self._headers, params={"name": name})
+        response = requests.get(f"{self._base_url}/products/{name}/name", headers=self._headers)
 
         if response.status_code == HTTPStatus.NOT_FOUND:
             raise EntityNotFoundException(message="Produto não encontrado", id=name)
@@ -73,7 +63,7 @@ class StockMicroserviceGateway(IStockProviderGateway):
 
     def get_category_by_id(self, category_id: str) -> Dict[str, Any]:
         """Retrieve a category by its ID."""
-        response = requests.get(f"{self._base_url}/categories/{category_id}", headers=self._headers)
+        response = requests.get(f"{self._base_url}/categories/{category_id}/id", headers=self._headers)
 
         if response.status_code == HTTPStatus.NOT_FOUND:
             raise EntityNotFoundException(message="Categoria não encontrada", id=category_id)
@@ -83,15 +73,15 @@ class StockMicroserviceGateway(IStockProviderGateway):
 
     def get_category_by_name(self, category_name: str) -> Dict[str, Any]:
         """Retrieve a category by its name."""
-        response = requests.get(f"{self._base_url}/categories", headers=self._headers, params={"name": category_name})
-        
+        response = requests.get(f"{self._base_url}/categories/{category_name}/name", headers=self._headers)
+
         if response.status_code == HTTPStatus.NOT_FOUND:
             raise EntityNotFoundException(message="Categoria não encontrada", id=category_name)
         response.raise_for_status()
 
-        results = response.json()
-        if not results:
+        result = response.json()
+        if not result:
             raise EntityNotFoundException(message="Categoria não encontrada", id=category_name)
 
-        return results[0]
+        return result
 
