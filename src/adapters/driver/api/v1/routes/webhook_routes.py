@@ -9,7 +9,7 @@ from src.core.containers import Container
 router = APIRouter()
 
 @router.post(
-    "/webhook/payment_notification",
+    "/webhooks/payment_notification",
     status_code=status.HTTP_200_OK,
 )
 @inject

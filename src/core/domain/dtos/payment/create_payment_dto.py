@@ -1,6 +1,34 @@
 from pydantic import BaseModel, ConfigDict, Field
-from src.core.domain.dtos.order_item.order_item_dto import OrderItemDTO
 
+
+class itemDTO(BaseModel):
+    model_config = ConfigDict(str_strip_whitespace=True, extra='forbid')
+
+    name: str = Field(
+        ...,
+        description="Nome do item",
+        example="Item 1",
+    )
+    description: str = Field(
+        default="",
+        description="Descrição do item",
+        example="Descrição do Item 1",
+    )
+    category: str = Field(
+        default="",
+        description="Categoria do item",
+        example="Categoria 1",
+    )
+    quantity: int = Field(
+        ...,
+        description="Quantidade do item",
+        example=1,
+    )
+    unit_price: float = Field(
+        ...,
+        description="Preço unitário do item",
+        example=50.0,
+    )
 
 class CreatePaymentDTO(BaseModel):
     model_config = ConfigDict(str_strip_whitespace=True, extra='forbid')
@@ -35,7 +63,7 @@ class CreatePaymentDTO(BaseModel):
         description="URL de callback para notificações de pagamento",
         example="https://example.com/callback",
     )
-    items: list[OrderItemDTO] = Field(
+    items: list[itemDTO] = Field(
         ...,
         description="Itens do pedido",
         example=[
