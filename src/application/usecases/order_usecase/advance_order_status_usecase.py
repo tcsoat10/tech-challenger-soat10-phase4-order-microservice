@@ -1,5 +1,6 @@
 
 import os
+from src.constants.payment_method_enum import PaymentMethodEnum
 from src.core.domain.entities.order import Order
 from src.core.exceptions.entity_not_found_exception import EntityNotFoundException
 from src.core.ports.order.i_order_repository import IOrderRepository
@@ -34,23 +35,39 @@ class AdvanceOrderStatusUseCase:
         if not order:
             raise EntityNotFoundException(message=f"O pedido com ID '{order_id}' não foi encontrado.")
 
-        #order.advance_order_status(self.order_status_gateway, employee=employee)
         order.advance_order_status(self.order_status_gateway)
-        order = self.order_gateway.update(order)
 
         if order.order_status.status == OrderStatusEnum.ORDER_PLACED.status:
             payment_dto = CreatePaymentDTO(
                 title=f"order-{order.id}",
                 description=f"Pagamento do pedido #{order.id}",
-                payment_method="qr_code",
+                payment_method=PaymentMethodEnum.QR_CODE.name,
                 total_amount=order.total,
                 currency="BRL",
                 notification_url=f"{os.getenv('PAYMENT_NOTIFICATION_URL')}?api_key={os.getenv('ORDER_MICROSERVICE_X_API_KEY')}",
-                items=order.order_items,
-                customer=order.id_customer,
+                items=[
+                    {
+                        "name": order_item.product_name,
+                        "description": order_item.observation,
+                        "category": order_item.product_category_name,
+                        "quantity": order_item.quantity,
+                        "unit_price": order_item.product_price
+                    }
+                    for order_item in order.order_items
+                ],
+                customer={
+                    "id": current_user.get('person', {}).get('id'),
+                    "name": current_user.get('person', {}).get('name'),
+                    "email": current_user.get('person', {}).get('email'),
+                },
             )
-            payment_id = self.payment_gateway.create_payment(payment_dto)
-            order.payment_id = payment_id
+
+            payment = self.payment_gateway.create_payment(payment_dto)
+            order.payment_id = payment['payment_id']
+            
             order = self.order_gateway.update(order)
 
+            return payment
+
+        order = self.order_gateway.update(order)
         return order

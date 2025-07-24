@@ -22,6 +22,7 @@ class Container(containers.DeclarativeContainer):
         "src.adapters.driver.api.v1.controllers.order_item_controller",
         "src.adapters.driver.api.v1.routes.order_item_routes",
         "src.adapters.driver.api.v1.controllers.webhook_controller",
+        "src.adapters.driver.api.v1.routes.webhook_routes",
         "src.adapters.driven.providers.stock_provider.stock_microservice_gateway",
         "src.adapters.driven.providers.payment_provider.payment_provider_gateway",
     ])
