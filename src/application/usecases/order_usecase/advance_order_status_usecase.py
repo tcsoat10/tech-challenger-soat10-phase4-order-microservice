@@ -35,7 +35,7 @@ class AdvanceOrderStatusUseCase:
         if not order:
             raise EntityNotFoundException(message=f"O pedido com ID '{order_id}' não foi encontrado.")
 
-        order.advance_order_status(self.order_status_gateway)
+        order.advance_order_status(self.order_status_gateway, current_user=current_user)
 
         if order.order_status.status == OrderStatusEnum.ORDER_PLACED.status:
             payment_dto = CreatePaymentDTO(

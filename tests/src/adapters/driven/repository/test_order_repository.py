@@ -202,18 +202,18 @@ class TestOrderRepository:
         assert order.order_status.status == OrderStatusEnum.ORDER_PAID.status
         assert order.status_history[-1].changed_by == 'System'
 
-        employee = 'employee'
-        order.advance_order_status(self.order_status_repository, employee=employee)
+        current_user = {'profile': {'id': "1", 'name': 'employee'}, 'person': {'id': '1', 'name': 'Employee Name', 'email': 'employee@example.com'}}
+        order.advance_order_status(self.order_status_repository, current_user=current_user)
         order = self.repository.update(order)
         assert order.order_status.status == OrderStatusEnum.ORDER_PREPARING.status
         assert order.status_history[-1].changed_by == order.id_employee
 
-        order.advance_order_status(self.order_status_repository)
+        order.advance_order_status(self.order_status_repository, current_user=current_user)
         order = self.repository.update(order)
         assert order.order_status.status == OrderStatusEnum.ORDER_READY.status
         assert order.status_history[-1].changed_by == order.id_employee
 
-        order.advance_order_status(self.order_status_repository)
+        order.advance_order_status(self.order_status_repository, current_user=current_user)
         order = self.repository.update(order)
         assert order.order_status.status == OrderStatusEnum.ORDER_COMPLETED.status
         assert order.status_history[-1].changed_by == order.id_employee

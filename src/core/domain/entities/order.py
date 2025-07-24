@@ -336,34 +336,58 @@ class Order(BaseEntity):
         self._record_status_change(new_status, owner)
         self.order_status = new_status
 
-    def set_status_preparing(self, order_status_repository: IOrderStatusRepository, employee: str, movement_owner: Optional[str] = None) -> None:
+    def set_status_preparing(
+        self,
+        order_status_repository: IOrderStatusRepository,
+        employee: str,
+        movement_owner: Optional[str] = None,
+        current_user: Optional[Dict[str, Any]] = None
+    ) -> None:
         if self.order_status.status != OrderStatusEnum.ORDER_PAID.status:
             raise BadRequestException("Não é possível preparar o pedido neste momento.")
 
-        if not employee:
-            raise BadRequestException("É necessário um funcionário para preparar o pedido.")
+        if current_user.get('profile', {}).get('name') not in ['employee', 'manager']:
+            raise BadRequestException("Apenas funcionários podem preparar pedidos.")
         
-        self.id_employee = employee
-        self.employee = employee
+        self.id_employee = current_user['person']['id']
 
         new_status = order_status_repository.get_by_status(OrderStatusEnum.ORDER_PREPARING.status)
         owner = movement_owner or self.id_employee or "Funcionário Anônimo"
         self._record_status_change(new_status, owner)
         self.order_status = new_status
 
-    def set_status_ready(self, order_status_repository: IOrderStatusRepository, movement_owner: Optional[str] = None) -> None:
+    def set_status_ready(self, order_status_repository: IOrderStatusRepository, movement_owner: Optional[str] = None, current_user: Optional[Dict[str, Any]] = None) -> None:
         if self.order_status.status != OrderStatusEnum.ORDER_PREPARING.status:
             raise BadRequestException("Não é possível finalizar o pedido neste momento.")
         
+        if current_user.get('profile', {}).get('name') not in ['employee', 'manager']:
+            raise BadRequestException("Apenas funcionários realizam esta ação.")
+        
+        if self.id_employee is None:
+            raise BadRequestException("O pedido não foi preparado por um funcionário.")
+
+        if self.id_employee != current_user['person']['id']:
+            raise BadRequestException("Apenas o funcionário que preparou o pedido pode finalizá-lo.")
+
         new_status = order_status_repository.get_by_status(OrderStatusEnum.ORDER_READY.status)
+        
         owner = movement_owner or self.id_employee or "Funcionário Anônimo"
         self._record_status_change(new_status, owner)
         self.order_status = new_status
 
-    def set_status_completed(self, order_status_repository: IOrderStatusRepository, movement_owner: Optional[str] = None) -> None:
+    def set_status_completed(self, order_status_repository: IOrderStatusRepository, movement_owner: Optional[str] = None, current_user: Optional[Dict[str, Any]] = None) -> None:
         if self.order_status.status != OrderStatusEnum.ORDER_READY.status:
             raise BadRequestException("Não é possível completar o pedido neste momento.")
+
+        if current_user.get('profile', {}).get('name') not in ['employee', 'manager']:
+            raise BadRequestException("Apenas funcionários realizam esta ação.")
         
+        if self.id_employee is None:
+            raise BadRequestException("O pedido não foi preparado por um funcionário.")
+
+        if self.id_employee != current_user['person']['id']:
+            raise BadRequestException("Apenas o funcionário que preparou o pedido pode completá-lo.")
+
         new_status = order_status_repository.get_by_status(OrderStatusEnum.ORDER_COMPLETED.status)
         owner = movement_owner or self.id_employee or "Funcionário Anônimo"
         self._record_status_change(new_status, owner)
@@ -375,6 +399,7 @@ class Order(BaseEntity):
         order_status_repository: IOrderStatusRepository,
         movement_owner: Optional[str] = None,
         employee: Optional[str] = None,
+        current_user: Optional[Dict[str, Any]] = None,
     ) -> None:
         '''
         Advances the order to the next step based on the current status.
@@ -405,11 +430,11 @@ class Order(BaseEntity):
         elif expected_next_status == OrderStatusEnum.ORDER_PAID:
             self.set_status_paid(order_status_repository, movement_owner)
         elif expected_next_status == OrderStatusEnum.ORDER_PREPARING:
-            self.set_status_preparing(order_status_repository, employee, movement_owner)
+            self.set_status_preparing(order_status_repository, employee, movement_owner, current_user=current_user)
         elif expected_next_status == OrderStatusEnum.ORDER_READY:
-            self.set_status_ready(order_status_repository, movement_owner)
+            self.set_status_ready(order_status_repository, movement_owner, current_user=current_user)
         elif expected_next_status == OrderStatusEnum.ORDER_COMPLETED:
-            self.set_status_completed(order_status_repository, movement_owner)
+            self.set_status_completed(order_status_repository, movement_owner, current_user=current_user)
         else:
             raise BadRequestException(f"Status não suportado: {expected_next_status.status}")
 
