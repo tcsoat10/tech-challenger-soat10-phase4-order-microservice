@@ -2,6 +2,14 @@ provider "aws" {
   region = var.aws_region
 }
 
+terraform {
+  backend "s3" {
+    bucket         = "soattc-terraform"
+    key            = "order-microservice/terraform.tfstate"
+    region         = "us-east-1" # ajuste para sua região
+  }
+}
+
 # Grupo de Segurança
 resource "aws_security_group" "eks_sg" {
   name   = "${var.cluster_name}-sg"
