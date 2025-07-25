@@ -1,0 +1,110 @@
+provider "aws" {
+  region = var.aws_region
+}
+
+terraform {
+  backend "s3" {
+    bucket = "soattc-order-app"
+    key    = "order-microservice/terraform.tfstate"
+    region = "us-east-1" # ajuste para sua região
+  }
+}
+
+data "terraform_remote_state" "aws" {
+  backend = "s3"
+  config = {
+    bucket = "soattc-aws-infra"
+    key    = "order-microservice/terraform.tfstate"
+    region = "us-east-1"
+  }
+}
+
+data "terraform_remote_state" "rds" {
+  backend = "s3"
+  config = {
+    bucket = "soattc-order-db"
+    key    = "order-microservice/terraform.tfstate"
+    region = "us-east-1"
+  }
+}
+
+provider "kubernetes" {
+  host                   = data.terraform_remote_state.aws.outputs.eks_cluster_endpoint
+  cluster_ca_certificate = base64decode(data.terraform_remote_state.aws.outputs.eks_cluster_ca)
+  token                  = data.aws_eks_cluster_auth.cluster.token
+}
+
+data "aws_eks_cluster_auth" "cluster" {
+  name = data.terraform_remote_state.aws.outputs.eks_cluster_name
+}
+
+resource "kubernetes_deployment" "order_app" {
+  metadata {
+    name      = "order-app"
+    namespace = "default"
+    labels = {
+      app = "order-app"
+    }
+  }
+  spec {
+    replicas = 1
+    selector {
+      match_labels = {
+        app = "order-app"
+      }
+    }
+    template {
+      metadata {
+        labels = {
+          app = "order-app"
+        }
+      }
+      spec {
+        container {
+          name  = "order-app"
+          image = "086134737169.dkr.ecr.us-east-1.amazonaws.com/soattc:latest"
+          env {
+            name  = "MYSQL_HOST"
+            value = replace(data.terraform_remote_state.rds.outputs.db_endpoint, ":3306", "")
+          }
+          env {
+            name  = "MYSQL_USER"
+            value = data.terraform_remote_state.rds.outputs.db_username
+          }
+          env {
+            name  = "MYSQL_PASS"
+            value = data.terraform_remote_state.rds.outputs.db_password
+          }
+          env {
+            name  = "MYSQL_PORT"
+            value = "3306"
+          }
+          env {
+            name = "MYSQL_DATABASE"
+            value = "order-microservice-db"
+          }
+          port {
+            container_port = 8080
+          }
+        }
+      }
+    }
+  }
+}
+
+resource "kubernetes_service" "order_app_lb" {
+  metadata {
+    name      = "order-app-lb"
+    namespace = "default"
+  }
+  spec {
+    selector = {
+      app = "order-app"
+    }
+    type = "LoadBalancer"
+    port {
+      port        = 80
+      target_port = 8080
+    }
+  }
+}

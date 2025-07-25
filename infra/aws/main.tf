@@ -4,9 +4,9 @@ provider "aws" {
 
 terraform {
   backend "s3" {
-    bucket         = "soattc-terraform"
-    key            = "order-microservice/terraform.tfstate"
-    region         = "us-east-1" # ajuste para sua região
+    bucket = "soattc-aws-infra"
+    key    = "order-microservice/terraform.tfstate"
+    region = "us-east-1" # ajuste para sua região
   }
 }
 
@@ -29,6 +29,22 @@ resource "aws_security_group" "eks_sg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 }
+
+resource "aws_security_group" "rds_sg" {
+  name   = "${var.cluster_name}-rds-sg"
+  vpc_id = data.aws_vpc.vpc.id
+}
+
+resource "aws_security_group_rule" "rds_from_eks" {
+type                     = "ingress"
+from_port                = 3306
+to_port                  = 3306
+protocol                 = "tcp"
+security_group_id        = aws_security_group.rds_sg.id
+source_security_group_id = aws_security_group.eks_sg.id
+description              = "Permitir acesso do EKS ao RDS"
+}
+
 
 data "aws_subnets" "subnet" {
   filter {
@@ -86,15 +102,3 @@ resource "aws_eks_node_group" "eks-node" {
   }
 }
 
-resource "aws_ecr_repository" "meu_repositorio" {
-  name = "soattc"
-
-  image_scanning_configuration {
-    scan_on_push = true
-  }
-
-  tags = {
-    Environment = "Production"
-    Owner       = "DevOps"
-  }
-}
