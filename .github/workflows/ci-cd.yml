@@ -241,6 +241,13 @@ jobs:
           cat <<EOF > secrets.auto.tfvars
           db_username = "${{ secrets.DB_USERNAME }}"
           db_password = "${{ secrets.DB_PASSWORD }}"
+          secret_key = "${{ secrets.SECRET_KEY }}"
+          order_microservice_api_key = "${{ secrets.ORDER_MICROSERVICE_API_KEY }}"
+          payment_service_api_key = "${{ secrets.PAYMENT_SERVICE_API_KEY }}"
+          payment_service_url = "${{ secrets.PAYMENT_SERVICE_URL }}"
+          payment_notification_url = "${{ secrets.PAYMENT_NOTIFICATION_URL }}"
+          stock_microservice_url = "${{ secrets.STOCK_MICROSERVICE_URL }}"
+          stock_microservice_api_key = "${{ secrets.STOCK_MICROSERVICE_API_KEY }}"
           EOF
 
       # Terraform Plan (PR)
