@@ -10,23 +10,23 @@ terraform {
   }
 }
 
-data "terraform_remote_state" "aws" {
-  backend = "s3"
-  config = {
-    bucket = "soattc-aws-infra"
-    key    = "order-microservice/terraform.tfstate"
-    region = "us-east-1"
-  }
-}
+# data "terraform_remote_state" "aws" {
+#   backend = "s3"
+#   config = {
+#     bucket = "soattc-aws-infra"
+#     key    = "order-microservice/terraform.tfstate"
+#     region = "us-east-1"
+#   }
+# }
 
-data "terraform_remote_state" "rds" {
-  backend = "s3"
-  config = {
-    bucket = "soattc-order-db"
-    key    = "order-microservice/terraform.tfstate"
-    region = "us-east-1"
-  }
-}
+# data "terraform_remote_state" "rds" {
+#   backend = "s3"
+#   config = {
+#     bucket = "soattc-order-db"
+#     key    = "order-microservice/terraform.tfstate"
+#     region = "us-east-1"
+#   }
+# }
 
 provider "kubernetes" {
   host                   = data.terraform_remote_state.aws.outputs.eks_cluster_endpoint
