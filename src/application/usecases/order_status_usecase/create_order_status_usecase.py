@@ -11,9 +11,9 @@ class CreateOrderStatusUseCase:
         self.order_status_gateway = order_status_gateway
     
     @classmethod
-    def build(self, order_status_gateway: IOrderStatusRepository) -> 'CreateOrderStatusUseCase':
-        return CreateOrderStatusUseCase(order_status_gateway)
-    
+    def build(cls, order_status_gateway: IOrderStatusRepository) -> 'CreateOrderStatusUseCase':
+        return cls(order_status_gateway)
+
     def execute(self, dto: CreateOrderStatusDTO) -> OrderStatus:
         order_status = self.order_status_gateway.get_by_status(dto.status)
         if order_status:

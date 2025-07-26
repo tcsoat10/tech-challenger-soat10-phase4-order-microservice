@@ -11,6 +11,10 @@ from src.application.usecases.order_status_usecase.delete_order_status_usecase i
 
 
 class TestOrderStatusUseCases:
+    def test_create_order_status_usecase_build_classmethod(self, order_status_gateway):
+        usecase = CreateOrderStatusUseCase.build(order_status_gateway)
+        assert isinstance(usecase, CreateOrderStatusUseCase)
+        assert usecase.order_status_gateway == order_status_gateway
     
     @pytest.fixture
     def order_status_gateway(self):
