@@ -69,11 +69,11 @@ resource "kubernetes_deployment" "order_app" {
           }
           env {
             name  = "MYSQL_USER"
-            value = data.terraform_remote_state.rds.outputs.db_username
+            value = var.db_user
           }
           env {
             name  = "MYSQL_PASSWORD"
-            value = data.terraform_remote_state.rds.outputs.db_password
+            value = var.db_password
           }
           env {
             name  = "MYSQL_PORT"

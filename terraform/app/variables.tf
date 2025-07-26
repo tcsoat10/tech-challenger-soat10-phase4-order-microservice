@@ -25,3 +25,12 @@ variable "policy_arn" {
 variable "instance_type" {
   default = "t3.small"
 }
+
+variable "db_password" {
+  description = "Database user password"
+  type        = string
+}
+
+variable "db_name" {
+  default = "order_microservice_db"
+}
