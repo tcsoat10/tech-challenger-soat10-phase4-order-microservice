@@ -35,7 +35,7 @@ provider "kubernetes" {
 }
 
 data "aws_eks_cluster_auth" "cluster" {
-  name = data.terraform_remote_state.aws.outputs.eks_cluster_name
+  name = var.cluster_name
 }
 
 resource "kubernetes_deployment" "order_app" {
