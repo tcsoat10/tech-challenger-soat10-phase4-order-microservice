@@ -10,7 +10,7 @@ on:
 env:
   REGION_DEFAULT: "us-east-1"
   AWS_ECR_REGISTRY: "${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com"
-  PROJECT_NAME: "soattc-order-app"
+  PROJECT_NAME: "soattc"
 
 jobs:
   build:
