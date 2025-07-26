@@ -8,7 +8,7 @@ data "terraform_remote_state" "rds" {
     path = "${path.module}/mock_rds_outputs.tfstate"
   } : {
     bucket = "soattc-order-db"
-    key    = "order-microservice/terraform.tfstate"
+    key    = "env:/${terraform.workspace}/order-microservice/terraform.tfstate"
     region = "us-east-1"
   }
 }
@@ -19,7 +19,7 @@ data "terraform_remote_state" "aws" {
     path = "${path.module}/mock_eks_outputs.tfstate"
   } : {
     bucket = "soattc-aws-infra"
-    key    = "order-microservice/terraform.tfstate"
+    key    = "env:/${terraform.workspace}/order-microservice/terraform.tfstate"
     region = "us-east-1"
   }
 }
