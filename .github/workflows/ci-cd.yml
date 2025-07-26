@@ -91,9 +91,9 @@ jobs:
           name: coverage-report
           path: coverage.xml
           retention-days: 7
-  
-  deploy:
-    name: Deploy with Terraform
+
+  deploy_infra:
+    name: Deploy Infra
     needs: test
     runs-on: ubuntu-latest
     environment: production
@@ -113,12 +113,121 @@ jobs:
         uses: hashicorp/setup-terraform@v3
 
       - name: Terraform Init
+        working-directory: ./terraform/infra
         run: terraform init
-
+      
       - name: Terraform Plan
-        run: terraform plan -out=tfplan
+        working-directory: ./terraform/infra
+        run: terraform plan
 
       - name: Terraform Apply
+        working-directory: ./terraform/infra
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-        run: terraform apply -auto-approve tfplan
-        
+        run: terraform apply -auto-approve
+  
+  deploy_db:
+    name: Deploy Database
+    needs: deploy_infra
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: ${{ env.REGION_DEFAULT }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Terraform Init
+        working-directory: ./terraform/db
+        run: terraform init
+      
+      - name: Terraform Plan (PR)
+        if: github.event_name == 'pull_request'
+        working-directory: ./terraform/db
+        run: terraform plan -var="eks_sg_id=sg-mockid123456789"
+      
+      - name: Create tfvars file
+        working-directory: ./terraform/db
+        run: |
+          cat <<EOF > secrets.auto.tfvars
+          db_username = "${{ secrets.DB_USERNAME }}"
+          db_password = "${{ secrets.DB_PASSWORD }}"
+          EOF
+
+      - name: Terraform Plan (Main)
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        working-directory: ./terraform/db
+        run: terraform plan
+
+      - name: Terraform Apply
+        working-directory: ./terraform/db
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: terraform apply -auto-approve
+  
+  deploy_app:
+    name: Deploy App
+    needs: deploy_db
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: ${{ env.REGION_DEFAULT }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Terraform Init
+        working-directory: ./terraform/app
+        run: terraform init
+
+      - name: Copy mocks if not in main branch
+        if: github.ref != 'refs/heads/main'
+        run: |
+          cp terraform/mock/mock_rds_outputs.tfstate terraform/app/
+          cp terraform/mock/mock_eks_outputs.tfstate terraform/app/
+      
+      - name: Select production workspace
+        if: github.ref == 'refs/heads/main'
+        working-directory: ./terraform/app
+        run: terraform workspace new prod || terraform workspace select prod
+      
+      - name: Create tfvars file
+        working-directory: ./terraform/app
+        run: |
+          cat <<EOF > secrets.auto.tfvars
+          db_username = "${{ secrets.DB_USERNAME }}"
+          db_password = "${{ secrets.DB_PASSWORD }}"
+          EOF
+
+      # Terraform Plan (PR)
+      - name: Terraform Plan
+        working-directory: ./terraform/app
+        run: terraform plan || true
+        if: github.ref != 'refs/heads/main'
+
+      # Terraform Plan (Main)
+      - name: Terraform Plan
+        working-directory: ./terraform/app
+        run: terraform plan
+        if: github.ref == 'refs/heads/main'
+
+      - name: Terraform Apply
+        working-directory: ./terraform/app
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: terraform apply -auto-approve
