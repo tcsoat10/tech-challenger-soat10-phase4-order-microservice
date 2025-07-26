@@ -81,7 +81,7 @@ resource "kubernetes_deployment" "order_app" {
           }
           env {
             name = "MYSQL_DATABASE"
-            value = "order-microservice-db"
+            value = data.terraform_remote_state.rds.outputs.db_name
           }
           port {
             container_port = 8080

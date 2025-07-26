@@ -9,3 +9,7 @@ output "db_username" {
 output "db_password" {
   value = var.db_password
 }
+
+output "db_name" {
+  value = aws_db_instance.mysql.db_name
+}
