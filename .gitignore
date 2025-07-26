@@ -151,3 +151,4 @@ infra/rds/terraform.tfvars
 *LICENSE.txt
 *terraform-provider*
 
+*environment
