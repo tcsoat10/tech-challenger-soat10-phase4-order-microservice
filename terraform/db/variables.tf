@@ -15,5 +15,5 @@ variable "db_name" {
 variable "eks_sg_id" {
   description = "ID do Security Group do EKS (mock para CI)"
   type        = string
-  default     = "sg-mockid123456789"
+  default     = ""
 }
