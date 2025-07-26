@@ -47,7 +47,7 @@ resource "aws_security_group" "rds_sg" {
     from_port       = 3306
     to_port         = 3306
     protocol        = "tcp"
-    security_groups = [var.eks_sg_id != "" ? var.eks_sg_id : data.aws_security_group.eks_sg.id]
+    security_groups = [var.eks_sg_id != "" ? var.eks_sg_id : data.aws_security_group.eks_sg[0].id]
   }
 
   tags = {
