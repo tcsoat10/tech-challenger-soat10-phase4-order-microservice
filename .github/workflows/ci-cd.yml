@@ -203,7 +203,7 @@ jobs:
           aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
           aws-region: ${{ env.REGION_DEFAULT }}
 
-            - name: Login to ECR
+      - name: Login to ECR
         run: |
           aws ecr get-login-password --region ${{ env.REGION_DEFAULT }} | docker login --username AWS --password-stdin ${{ env.AWS_ECR_REGISTRY }}
 
