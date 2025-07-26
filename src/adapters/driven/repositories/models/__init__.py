@@ -6,10 +6,8 @@ from src.adapters.driven.repositories.models.order_status_movement_model import 
 
 __all__ = [
     "BaseModel",
-    "CategoryModel",
     "OrderItemModel",
     "OrderModel",
     "OrderStatusModel",
     "OrderStatusMovementModel",
-    "ProductModel",
 ]
