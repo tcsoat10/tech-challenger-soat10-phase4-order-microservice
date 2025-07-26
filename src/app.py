@@ -26,9 +26,11 @@ app.add_middleware(AuthMiddleware)
 app.add_middleware(IdentityMapMiddleware)
 app.add_middleware(ApiKeyMiddleware)
 
+PREFIX_API_V1 = "/api/v1"
+
 # Adicionando rotas da versão 1
-app.include_router(health_check_router, prefix="/api/v1")
-app.include_router(order_routes, prefix="/api/v1", tags=["order"])
-app.include_router(order_item_routes, prefix="/api/v1", tags=["order-items"], include_in_schema=False)
-app.include_router(order_status_routes, prefix="/api/v1", tags=["order-status"])
-app.include_router(webhook_routes, prefix="/api/v1", tags=["webhooks"], include_in_schema=False)
+app.include_router(health_check_router, prefix=PREFIX_API_V1)
+app.include_router(order_routes, prefix=PREFIX_API_V1, tags=["order"])
+app.include_router(order_item_routes, prefix=PREFIX_API_V1, tags=["order-items"], include_in_schema=False)
+app.include_router(order_status_routes, prefix=PREFIX_API_V1, tags=["order-status"])
+app.include_router(webhook_routes, prefix=PREFIX_API_V1, tags=["webhooks"], include_in_schema=False)
