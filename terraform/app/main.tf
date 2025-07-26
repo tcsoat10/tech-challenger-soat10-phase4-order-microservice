@@ -105,7 +105,7 @@ resource "kubernetes_service" "order_app_lb" {
     type = "LoadBalancer"
     port {
       port        = 80
-      target_port = 8080
+      target_port = 8000
     }
   }
 }
