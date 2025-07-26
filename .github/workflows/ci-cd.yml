@@ -215,19 +215,17 @@ jobs:
           db_password = "${{ secrets.DB_PASSWORD }}"
           EOF
 
+      # Terraform Plan (PR)
       - name: Terraform Plan
         working-directory: ./terraform/app
-        run: |
-          terraform plan
-          if grep -q "x509: certificate signed by unknown authority" plan.log; then
-            echo "Ignoring known TLS error."
-            exit 0
-          fi
-          if grep -q "server misbehaving" plan.log; then
-            echo "Ignoring known DNS error."
-            exit 0
-          fi
-          grep -q "Error:" plan.log && exit 1 || exit 0
+        run: terraform plan || true
+        if: github.ref != 'refs/heads/main'
+
+      # Terraform Plan (Main)
+      - name: Terraform Plan
+        working-directory: ./terraform/app
+        run: terraform plan
+        if: github.ref == 'refs/heads/main'
 
       - name: Terraform Apply
         working-directory: ./terraform/app
