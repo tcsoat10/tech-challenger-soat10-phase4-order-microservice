@@ -127,7 +127,7 @@ jobs:
   
   deploy_db:
     name: Deploy Database
-    needs: test
+    needs: deploy_infra
     runs-on: ubuntu-latest
     environment: production
     steps:
@@ -160,7 +160,7 @@ jobs:
   
   deploy_app:
     name: Deploy App
-    needs: test
+    needs: deploy_db
     runs-on: ubuntu-latest
     environment: production
     steps:
