@@ -203,6 +203,18 @@ jobs:
           aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
           aws-region: ${{ env.REGION_DEFAULT }}
 
+      - name: Login to ECR
+        run: |
+          aws ecr get-login-password --region ${{ env.REGION_DEFAULT }} | docker login --username AWS --password-stdin ${{ env.AWS_ECR_REGISTRY }}
+
+      - name: Build and Push Docker Image
+        id: build-image
+        run: |
+          # Build and push Docker image
+          docker build --no-cache -t order-app:latest .
+          docker tag order-app:latest ${{ env.AWS_ECR_REGISTRY }}/${{ env.PROJECT_NAME }}:latest
+          docker push ${{ env.AWS_ECR_REGISTRY }}/${{ env.PROJECT_NAME }}:latest
+
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:

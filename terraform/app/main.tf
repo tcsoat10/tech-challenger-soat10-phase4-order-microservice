@@ -62,7 +62,7 @@ resource "kubernetes_deployment" "order_app" {
       spec {
         container {
           name  = "order-app"
-          image = "086134737169.dkr.ecr.us-east-1.amazonaws.com/soattc:latest"
+          image = "086134737169.dkr.ecr.us-east-1.amazonaws.com/soattc-order-app:latest"
           env {
             name  = "MYSQL_HOST"
             value = replace(data.terraform_remote_state.rds.outputs.db_endpoint, ":3306", "")
@@ -93,6 +93,7 @@ resource "kubernetes_deployment" "order_app" {
 }
 
 resource "kubernetes_service" "order_app_lb" {
+  depends_on = [kubernetes_deployment.order_app]
   metadata {
     name      = "order-app-lb"
     namespace = "default"
@@ -104,7 +105,7 @@ resource "kubernetes_service" "order_app_lb" {
     type = "LoadBalancer"
     port {
       port        = 80
-      target_port = 8080
+      target_port = 8000
     }
   }
 }
