@@ -190,7 +190,7 @@ jobs:
 
       - name: Copy mocks if not in main branch
         if: github.ref != 'refs/heads/main'
-        run:
+        run: |
           cp terraform/mock/mock_rds_outputs.tfstate terraform/app/
           cp terraform/mock/mock_eks_outputs.tfstate terraform/app/
       
