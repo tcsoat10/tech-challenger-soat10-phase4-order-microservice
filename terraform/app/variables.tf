@@ -34,3 +34,8 @@ variable "db_password" {
 variable "db_name" {
   default = "order_microservice_db"
 }
+
+variable "db_username" {
+  description = "Database username"
+  type        = string
+}

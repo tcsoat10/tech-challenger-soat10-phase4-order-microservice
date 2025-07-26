@@ -69,7 +69,7 @@ resource "kubernetes_deployment" "order_app" {
           }
           env {
             name  = "MYSQL_USER"
-            value = var.db_user
+            value = var.db_username
           }
           env {
             name  = "MYSQL_PASSWORD"
