@@ -10,7 +10,7 @@ on:
 env:
   REGION_DEFAULT: "us-east-1"
   AWS_ECR_REGISTRY: "${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com"
-  PROJECT_NAME: "soattc"
+  PROJECT_NAME: "soattc-order-app"
 
 jobs:
   build:
@@ -211,8 +211,8 @@ jobs:
         id: build-image
         run: |
           # Build and push Docker image
-          docker build --no-cache -t order-app:latest .
-          docker tag order-app:latest ${{ env.AWS_ECR_REGISTRY }}/${{ env.PROJECT_NAME }}:latest
+          docker build --no-cache -t soattc-order-app:latest .
+          docker tag soattc-order-app:latest ${{ env.AWS_ECR_REGISTRY }}/${{ env.PROJECT_NAME }}:latest
           docker push ${{ env.AWS_ECR_REGISTRY }}/${{ env.PROJECT_NAME }}:latest
 
       - name: Setup Terraform
