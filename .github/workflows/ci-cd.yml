@@ -153,11 +153,6 @@ jobs:
         if: github.event_name == 'pull_request'
         working-directory: ./terraform/db
         run: terraform plan -var="eks_sg_id=sg-mockid123456789"
-
-      - name: Terraform Plan (Main)
-        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
-        working-directory: ./terraform/db
-        run: terraform plan
       
       - name: Create tfvars file
         working-directory: ./terraform/db
@@ -167,6 +162,11 @@ jobs:
           db_username = "${{ secrets.DB_USERNAME }}"
           db_password = "${{ secrets.DB_PASSWORD }}"
           EOF
+
+      - name: Terraform Plan (Main)
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        working-directory: ./terraform/db
+        run: terraform plan
 
       - name: Terraform Apply
         working-directory: ./terraform/db
@@ -207,10 +207,6 @@ jobs:
         if: github.ref == 'refs/heads/main'
         working-directory: ./terraform/app
         run: terraform workspace new prod || terraform workspace select prod
-
-      - name: Terraform Plan
-        working-directory: ./terraform/app
-        run: terraform plan
       
       - name: Create tfvars file
         working-directory: ./terraform/app
@@ -220,6 +216,10 @@ jobs:
           db_username = "${{ secrets.DB_USERNAME }}"
           db_password = "${{ secrets.DB_PASSWORD }}"
           EOF
+
+      - name: Terraform Plan
+        working-directory: ./terraform/app
+        run: terraform plan      
 
       - name: Terraform Apply
         working-directory: ./terraform/app
