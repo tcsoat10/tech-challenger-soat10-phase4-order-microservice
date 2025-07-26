@@ -1,7 +1,7 @@
 from pydantic import BaseModel, ConfigDict, Field
 
 
-class itemDTO(BaseModel):
+class ItemDTO(BaseModel):
     model_config = ConfigDict(str_strip_whitespace=True, extra='forbid')
 
     name: str = Field(
@@ -63,7 +63,7 @@ class CreatePaymentDTO(BaseModel):
         description="URL de callback para notificações de pagamento",
         example="https://example.com/callback",
     )
-    items: list[itemDTO] = Field(
+    items: list[ItemDTO] = Field(
         ...,
         description="Itens do pedido",
         example=[
