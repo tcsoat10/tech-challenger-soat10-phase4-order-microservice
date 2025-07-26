@@ -223,6 +223,11 @@ jobs:
             echo "Ignoring known TLS error."
             exit 0
           fi
+          if grep -q "server misbehaving" plan.log; then
+            echo "Ignoring known DNS error."
+            exit 0
+          fi
+          grep -q "Error:" plan.log && exit 1 || exit 0
 
       - name: Terraform Apply
         working-directory: ./terraform/app
