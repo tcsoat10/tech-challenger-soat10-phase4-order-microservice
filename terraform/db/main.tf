@@ -26,6 +26,7 @@ data "aws_subnets" "subnets" {
 }
 
 data "aws_security_group" "eks_sg" {
+  count = var.eks_sg_id == "" ? 1 : 0
   filter {
     name   = "group-name"
     values = ["eks-cluster-sg-soat10tc-cluster-eks*"]
