@@ -80,6 +80,34 @@ resource "kubernetes_deployment" "order_app" {
             value = "3306"
           }
           env {
+            name  = "SECRET_KEY"
+            value = var.secret_key
+          }
+          env {
+            name = "PAYMENT_SERVICE_API_KEY"
+            value = var.payment_service_api_key
+          }
+          env {
+            name = "PAYMENT_SERVICE_URL"
+            value = var.payment_service_url
+          }
+          env {
+            name = "PAYMENT_NOTIFICATION_URL"
+            value = var.payment_notification_url
+          }
+          env {
+            name = "ORDER_MICROSERVICE_X_API_KEY"
+            value = var.order_microservice_api_key
+          }
+          env {
+            name = "STOCK_MICROSERVICE_URL"
+            value = var.stock_microservice_url
+          }
+          env {
+            name = "STOCK_MICROSERVICE_X_API_KEY"
+            value = var.stock_microservice_api_key
+          }
+          env {
             name = "MYSQL_DATABASE"
             value = data.terraform_remote_state.rds.outputs.db_name
           }
