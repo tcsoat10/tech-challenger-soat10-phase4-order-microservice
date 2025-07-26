@@ -93,6 +93,7 @@ resource "kubernetes_deployment" "order_app" {
 }
 
 resource "kubernetes_service" "order_app_lb" {
+  depends_on = [kubernetes_deployment.order_app]
   metadata {
     name      = "order-app-lb"
     namespace = "default"
