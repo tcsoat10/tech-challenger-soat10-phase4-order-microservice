@@ -117,6 +117,11 @@ jobs:
       - name: Terraform Init
         working-directory: ./terraform/infra
         run: terraform init
+
+      - name: Select production workspace
+        if: github.ref == 'refs/heads/main'
+        working-directory: ./terraform/infra
+        run: terraform workspace new prod || terraform workspace select prod
       
       - name: Terraform Plan
         working-directory: ./terraform/infra
@@ -165,6 +170,11 @@ jobs:
           db_username = "${{ secrets.DB_USERNAME }}"
           db_password = "${{ secrets.DB_PASSWORD }}"
           EOF
+
+      - name: Select production workspace
+        if: github.ref == 'refs/heads/main'
+        working-directory: ./terraform/db
+        run: terraform workspace new prod || terraform workspace select prod
 
       - name: Terraform Plan (Main)
         if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
