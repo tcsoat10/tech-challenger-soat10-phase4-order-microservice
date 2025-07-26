@@ -62,7 +62,7 @@ resource "kubernetes_deployment" "order_app" {
       spec {
         container {
           name  = "order-app"
-          image = "086134737169.dkr.ecr.us-east-1.amazonaws.com/soattc:latest"
+          image = "086134737169.dkr.ecr.us-east-1.amazonaws.com/soattc-order-app:latest"
           env {
             name  = "MYSQL_HOST"
             value = replace(data.terraform_remote_state.rds.outputs.db_endpoint, ":3306", "")
