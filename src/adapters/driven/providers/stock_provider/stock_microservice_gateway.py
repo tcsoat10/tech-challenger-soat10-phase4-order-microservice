@@ -1,3 +1,4 @@
+from src.constants.messages import CATEGORY_NOT_FOUND, PRODUCT_NOT_FOUND
 from src.core.ports.stock.i_stock_provider_gateway import IStockProviderGateway
 from src.core.exceptions.entity_not_found_exception import EntityNotFoundException
 
@@ -22,7 +23,7 @@ class StockMicroserviceGateway(IStockProviderGateway):
         response = requests.get(f"{self._base_url}/products/{product_id}/id", headers=self._headers)
         
         if response.status_code != HTTPStatus.OK:
-            raise EntityNotFoundException(message="Produto não encontrado", id=product_id)
+            raise EntityNotFoundException(message=PRODUCT_NOT_FOUND, id=product_id)
         
         return response.json()
     
@@ -42,12 +43,12 @@ class StockMicroserviceGateway(IStockProviderGateway):
         response = requests.get(f"{self._base_url}/products/{name}/name", headers=self._headers)
 
         if response.status_code == HTTPStatus.NOT_FOUND:
-            raise EntityNotFoundException(message="Produto não encontrado", id=name)
+            raise EntityNotFoundException(message=PRODUCT_NOT_FOUND, id=name)
         response.raise_for_status()
 
         results = response.json()
         if not results:
-            raise EntityNotFoundException(message="Produto não encontrado", id=name)
+            raise EntityNotFoundException(message=PRODUCT_NOT_FOUND, id=name)
         
         return results[0] # Returning the first result
     
@@ -66,7 +67,7 @@ class StockMicroserviceGateway(IStockProviderGateway):
         response = requests.get(f"{self._base_url}/categories/{category_id}/id", headers=self._headers)
 
         if response.status_code == HTTPStatus.NOT_FOUND:
-            raise EntityNotFoundException(message="Categoria não encontrada", id=category_id)
+            raise EntityNotFoundException(message=CATEGORY_NOT_FOUND, id=category_id)
         response.raise_for_status()
 
         return response.json()
@@ -76,12 +77,12 @@ class StockMicroserviceGateway(IStockProviderGateway):
         response = requests.get(f"{self._base_url}/categories/{category_name}/name", headers=self._headers)
 
         if response.status_code == HTTPStatus.NOT_FOUND:
-            raise EntityNotFoundException(message="Categoria não encontrada", id=category_name)
+            raise EntityNotFoundException(message=CATEGORY_NOT_FOUND, id=category_name)
         response.raise_for_status()
 
         result = response.json()
         if not result:
-            raise EntityNotFoundException(message="Categoria não encontrada", id=category_name)
+            raise EntityNotFoundException(message=CATEGORY_NOT_FOUND, id=category_name)
 
         return result
 
