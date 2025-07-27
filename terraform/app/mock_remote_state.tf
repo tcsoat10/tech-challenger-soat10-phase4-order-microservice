@@ -19,7 +19,7 @@ data "terraform_remote_state" "aws" {
     path = "${path.module}/../mock/mock_eks_outputs.tfstate"
   } : {
     bucket = "soattc-aws-infra"
-    key    = "env:/${terraform.workspace}/order-microservice/terraform.tfstate"
+    key    = "env:/${terraform.workspace}/aws-infra/terraform.tfstate"
     region = "us-east-1"
   }
 }

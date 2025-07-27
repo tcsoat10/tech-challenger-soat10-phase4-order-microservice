@@ -5,7 +5,7 @@ provider "aws" {
 terraform {
   backend "s3" {
     bucket = "soattc-aws-infra"
-    key    = "order-microservice/terraform.tfstate"
+    key    = "aws-infra/terraform.tfstate"
     region = "us-east-1" # ajuste para sua região
   }
 }
