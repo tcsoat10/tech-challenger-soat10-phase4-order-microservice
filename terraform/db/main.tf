@@ -38,7 +38,7 @@ data "aws_security_group" "eks_sg" {
 }
 
 resource "aws_security_group" "rds_sg" {
-  name        = "rds-mysql-sg"
+  name        = "rds-order-mysql-sg"
   description = "Allow inbound traffic to RDS MySQL instance"
   vpc_id      = data.aws_vpc.vpc.id
 
@@ -51,7 +51,7 @@ resource "aws_security_group" "rds_sg" {
   }
 
   tags = {
-    Name = "rds-mysql-sg"
+    Name = "rds-order-mysql-sg"
   }
 }
 
