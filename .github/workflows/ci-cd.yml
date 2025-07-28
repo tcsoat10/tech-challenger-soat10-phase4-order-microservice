@@ -91,50 +91,10 @@ jobs:
           name: coverage-report
           path: coverage.xml
           retention-days: 7
-
-  deploy_infra:
-    name: Deploy Infra
-    needs: test
-    runs-on: ubuntu-latest
-    environment: production
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v1
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
-          aws-region: ${{ env.REGION_DEFAULT }}
-
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_wrapper: false
-
-      - name: Terraform Init
-        working-directory: ./terraform/infra
-        run: terraform init
-
-      - name: Select production workspace
-        if: github.ref == 'refs/heads/main'
-        working-directory: ./terraform/infra
-        run: terraform workspace new prod || terraform workspace select prod
-      
-      - name: Terraform Plan
-        working-directory: ./terraform/infra
-        run: terraform plan
-
-      - name: Terraform Apply
-        working-directory: ./terraform/infra
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-        run: terraform apply -auto-approve
   
   deploy_db:
     name: Deploy Database
-    needs: deploy_infra
+    needs: test
     runs-on: ubuntu-latest
     environment: production
     steps:
