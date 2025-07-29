@@ -9,7 +9,7 @@ class ApiKeyMiddleware(BaseHTTPMiddleware):
     """Middleware para validar a chave de API (x-api-key) como parâmetro na URL em rotas específicas."""
 
     INCLUDED_PATHS: List[str] = [
-        "/webhook/payment_notification",
+        "/api/v1/webhooks/payment_notification",
     ]
 
     async def dispatch(self, request: Request, call_next: Callable) -> Response:

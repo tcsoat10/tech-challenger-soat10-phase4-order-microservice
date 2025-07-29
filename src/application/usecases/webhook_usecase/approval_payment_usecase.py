@@ -34,6 +34,9 @@ class ApprovalPaymentUseCase:
             #     self.payment_gateway.refund_payment(payment_id)
             raise EntityNotFoundException(f"Order with payment ID {payment_id} not found.")
         
+        if payment_id != order.payment_id:
+            raise EntityNotFoundException(f"Payment ID {payment_id} does not match order payment ID {order.payment_id}.")
+        
         if order.order_status.status != OrderStatusEnum.ORDER_PLACED.status:
             raise EntityNotFoundException(f"Order with ID {order.id} is not in the 'ORDER_PLACED' status.")
         

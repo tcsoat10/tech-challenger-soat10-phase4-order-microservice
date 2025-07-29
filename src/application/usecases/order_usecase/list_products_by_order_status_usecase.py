@@ -43,6 +43,6 @@ class ListProductsByOrderStatusUseCase:
         if not category:
             raise EntityNotFoundException(message=f"Categoria '{category}' não encontrada.")
 
-        products = self.stock_provider_gateway.get_products_by_category_id(category['id'])
+        products = self.stock_provider_gateway.get_products_by_category_name(category['name'])
 
         return products

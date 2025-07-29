@@ -27,15 +27,15 @@ def test_create_order_success(client, populate_order_status):
     assert data["order_status"]["status"] == OrderStatusEnum.ORDER_PENDING.status
     assert data["order_status"]["description"] == OrderStatusEnum.ORDER_PENDING.description
 
-@patch("src.adapters.driven.providers.stock_provider.stock_microservice_gateway.StockMicroserviceGateway.get_products_by_category_id")
+@patch("src.adapters.driven.providers.stock_provider.stock_microservice_gateway.StockMicroserviceGateway.get_products_by_category_name")
 @patch("src.adapters.driven.providers.stock_provider.stock_microservice_gateway.StockMicroserviceGateway.get_category_by_name")
-def test_list_products_by_order_status_and_return_success(mock_get_category_by_name, mock_get_products_by_category_id, client):
+def test_list_products_by_order_status_and_return_success(mock_get_category_by_name, mock_get_products_by_category_name, client):
     mock_get_category_by_name.return_value = {
         "id": "1",
         "name": ProductCategoryEnum.BURGERS.name,
         "description": ProductCategoryEnum.BURGERS.description
     }
-    mock_get_products_by_category_id.return_value = [{
+    mock_get_products_by_category_name.return_value = [{
         "id": "1",
         "name": "Burger",
         "description": "Delicious beef burger",

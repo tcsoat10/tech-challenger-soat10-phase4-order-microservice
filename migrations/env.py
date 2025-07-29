@@ -7,6 +7,7 @@ load_dotenv()
 from config.database import DATABASE
 from src.adapters.driven.repositories.models.base_model import BaseModel
 
+SQLALCHEMY_URL_KEY = "sqlalchemy.url"
 
 # Carrega a configuração do Alembic
 config = context.config
@@ -14,13 +15,13 @@ fileConfig(config.config_file_name)
 
 # Geração da URL do banco de dados
 
-# config.set_main_option("sqlalchemy.url", database_url)
+# config.set_main_option(SQLALCHEMY_URL_KEY, database_url)
 
 # Metadados das tabelas (BaseModel como base para todas as entidades)
 target_metadata = BaseModel.metadata
 
 def set_database_url(config):
-    database_url = config.get_main_option("sqlalchemy.url")
+    database_url = config.get_main_option(SQLALCHEMY_URL_KEY)
 
     if database_url and 'driver://' in database_url:
         database_url = (
@@ -28,12 +29,12 @@ def set_database_url(config):
             f"{DATABASE['host']}:{DATABASE['port']}/{DATABASE['name']}"
         )
 
-    config.set_main_option("sqlalchemy.url", database_url)
+    config.set_main_option(SQLALCHEMY_URL_KEY, database_url)
 
 
 # Modo offline: Gera SQL sem conexão ao banco
 def run_migrations_offline():
-    url = config.get_main_option("sqlalchemy.url")
+    url = config.get_main_option(SQLALCHEMY_URL_KEY)
     context.configure(
         url=url,
         target_metadata=target_metadata,

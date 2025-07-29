@@ -45,15 +45,12 @@ def test_engine(tmp_path_factory):
 
 @pytest.fixture(scope="function")
 def db_session(test_engine):
-    SessionLocal = sessionmaker(bind=test_engine)
-    session = SessionLocal()
+    session_local = sessionmaker(bind=test_engine)
+    session = session_local()
 
     # Override de dependência do FastAPI e Container
     def override_get_db():
-        try:
-            yield session
-        finally:
-            pass
+        yield session
 
     app.dependency_overrides[get_db] = override_get_db
     container = Container()

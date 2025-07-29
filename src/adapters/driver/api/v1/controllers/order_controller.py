@@ -1,5 +1,7 @@
 from typing import List
 
+from src.core.domain.entities.order import Order
+from src.core.domain.dtos.payment.payment_dto import PaymentDTO
 from src.core.domain.dtos.product.product_dto import ProductDTO
 from src.core.domain.dtos.order_status.order_status_dto import OrderStatusDTO
 from src.application.usecases.order_usecase.revert_order_status_usecase import RevertOrderStatusUseCase
@@ -89,12 +91,12 @@ class OrderController:
         orders = list_orders_usecase.execute(status, current_user)
         return DTOPresenter.transform_list(orders, OrderDTO)
 
-    def advance_order_status(self, order_id: int, current_user: dict) -> OrderDTO:
-        advance_status_usecase = AdvanceOrderStatusUseCase.build(
-            self.order_gateway, self.order_status_gateway, self.payment_gateway
-        )
-        order = advance_status_usecase.execute(order_id, current_user)
-        return DTOPresenter.transform(order, OrderDTO)
+    def advance_order_status(self, order_id: int, current_user: dict) -> OrderDTO | PaymentDTO:
+        advance_status_usecase = AdvanceOrderStatusUseCase.build(self.order_gateway, self.order_status_gateway, self.payment_gateway)
+        response = advance_status_usecase.execute(order_id, current_user)
+        if isinstance(response, Order):
+            return DTOPresenter.transform(response, OrderDTO)
+        return DTOPresenter.transform_from_dict(response, PaymentDTO)
     
     def revert_order_status(self, order_id: int, current_user: dict) -> OrderDTO:
         revert_status_usecase = RevertOrderStatusUseCase.build(self.order_gateway, self.order_status_gateway)

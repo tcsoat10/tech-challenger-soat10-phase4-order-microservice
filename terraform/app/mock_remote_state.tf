@@ -24,7 +24,6 @@ data "terraform_remote_state" "aws" {
   }
 }
 
-
 data "terraform_remote_state" "stock" {
   backend = local.use_mock ? "local" : "s3"
   config = local.use_mock ? {
