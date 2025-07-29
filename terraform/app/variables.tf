@@ -50,23 +50,8 @@ variable "secret_key" {
   type        = string
 }
 
-variable "payment_service_url" {
-  description = "URL to payment microservice"
-  type        = string
-}
-
-variable "payment_notification_url" {
-  description = "Notification url of the payment microservice"
-  type        = string
-}
-
 variable "order_microservice_api_key" {
   description = "API Key to protect this microservice"
-  type        = string
-}
-
-variable "stock_microservice_url" {
-  description = "URL to stock microservice"
   type        = string
 }
 
