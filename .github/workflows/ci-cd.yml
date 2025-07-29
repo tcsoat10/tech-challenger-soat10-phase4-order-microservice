@@ -55,10 +55,10 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
           aws-region: ${{ env.REGION_DEFAULT }}
-          
+
       - name: Download Terraform state from S3
         run: |
-          aws s3 cp s3://soattc-sonarqube-projects/prod/sonarqube-projects/terraform.tfstate terraform.tfstate
+          aws s3 cp s3://soattc-sonarqube-projects/env:/prod/sonarqube-projects/terraform.tfstate terraform.tfstate
 
       - name: Extrair output do Terraform state
         id: tf_output
