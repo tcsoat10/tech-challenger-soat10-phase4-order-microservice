@@ -39,6 +39,7 @@ data "aws_eks_cluster_auth" "cluster" {
 }
 
 resource "kubernetes_deployment" "order_app" {
+  depends_on = [kubernetes_service.order_app_lb]
   metadata {
     name      = "order-app"
     namespace = "default"
@@ -93,7 +94,7 @@ resource "kubernetes_deployment" "order_app" {
           }
           env {
             name = "PAYMENT_NOTIFICATION_URL"
-            value = var.payment_notification_url
+            value = kubernetes_service.order_app_lb.status[0].load_balancer[0].ingress[0].hostname
           }
           env {
             name = "ORDER_MICROSERVICE_X_API_KEY"
@@ -120,8 +121,7 @@ resource "kubernetes_deployment" "order_app" {
   }
 }
 
-resource "kubernetes_service" "order_app_lb" {
-  depends_on = [kubernetes_deployment.order_app]
+resource "kubernetes_service" "order_app_lb" {  
   metadata {
     name      = "order-app-lb"
     namespace = "default"
