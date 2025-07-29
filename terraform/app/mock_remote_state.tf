@@ -23,3 +23,25 @@ data "terraform_remote_state" "aws" {
     region = "us-east-1"
   }
 }
+
+data "terraform_remote_state" "stock" {
+  backend = local.use_mock ? "local" : "s3"
+  config = local.use_mock ? {
+    path = "${path.module}/../mock/mock_stock_outputs.tfstate"
+  } : {
+    bucket = "soattc-stock-app"
+    key    = "env:/${terraform.workspace}/stock-microservice/terraform.tfstate"
+    region = "us-east-1"
+  }
+}
+
+data "terraform_remote_state" "payment" {
+  backend = local.use_mock ? "local" : "s3"
+  config = local.use_mock ? {
+    path = "${path.module}/../mock/mock_payment_outputs.tfstate"
+  } : {
+    bucket = "soattc-payment-app"
+    key    = "env:/${terraform.workspace}/payment-microservice/terraform.tfstate"
+    region = "us-east-1"
+  }
+}
