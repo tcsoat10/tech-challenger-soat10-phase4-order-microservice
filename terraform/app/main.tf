@@ -89,7 +89,7 @@ resource "kubernetes_deployment" "order_app" {
           }
           env {
             name = "PAYMENT_SERVICE_URL"
-            value = var.payment_service_url
+            value = data.terraform_remote_state.payment.outputs.payment_app_lb_endpoint
           }
           env {
             name = "PAYMENT_NOTIFICATION_URL"
@@ -101,7 +101,7 @@ resource "kubernetes_deployment" "order_app" {
           }
           env {
             name = "STOCK_MICROSERVICE_URL"
-            value = var.stock_microservice_url
+            value = data.terraform_remote_state.stock.outputs.stock_app_lb_endpoint
           }
           env {
             name = "STOCK_MICROSERVICE_X_API_KEY"
