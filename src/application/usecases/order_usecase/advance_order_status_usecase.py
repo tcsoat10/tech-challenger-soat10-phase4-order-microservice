@@ -37,7 +37,7 @@ class AdvanceOrderStatusUseCase:
 
         order.advance_order_status(self.order_status_gateway, current_user=current_user)
 
-        callback_url = os.getenv('PAYMENT_NOTIFICATION_URL')
+        callback_url = os.getenv('PAYMENT_NOTIFICATION_URL', '')
         if not callback_url.startswith('http'):
             callback_url = f"http://{callback_url}"
 
