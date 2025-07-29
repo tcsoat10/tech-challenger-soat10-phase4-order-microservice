@@ -110,16 +110,14 @@ jobs:
           path: . # Baixa o coverage.xml para a raiz do projeto
 
       - name: SonarQube Scan
-        uses: SonarSource/sonarqube-scan-action@v5.3.0
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
-        with:
-          args: >
-            -Dsonar.login="admin"
-            -Dsonar.projectKey=soattc-order-app
-            -Dsonar.sources=src
-            -Dsonar.python.coverage.reportPaths=coverage.xml
+        run: |
+          poetry add pysonar
+          poetry run pysonar \
+          --sonar-host-url=${{ secrets.SONAR_HOST_URL }} \
+          --sonar-token=${{ secrets.SONAR_TOKEN }} \
+          --sonar-project-key=soattc-order-app \
+          --coverage=coverage.xml \
+          --sonar-sources=src        
 
       - name: SonarQube Quality Gate check
         uses: sonarsource/sonarqube-quality-gate-action@v1.2.0
