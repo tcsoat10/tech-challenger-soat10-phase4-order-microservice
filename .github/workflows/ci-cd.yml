@@ -43,6 +43,38 @@ jobs:
 
       - name: Install dependencies
         run: poetry install --with test --sync
+  
+  run_sonarqube:
+    name: Build and analyze
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download Terraform state from S3
+        run: |
+          aws s3 cp s3://soattc-sonarqube-projects/prod/sonarqube-projects/terraform.tfstate terraform.tfstate
+
+      - name: Extrair output do Terraform state
+        id: tf_output
+        run: |
+          export SONAR_TOKEN=$(jq -r '.outputs.sonar_token.value' terraform.tfstate)
+          echo "output_value=$SONAR_TOKEN" >> $GITHUB_OUTPUT
+
+          export SONAR_HOST_URL=$(jq -r '.outputs.sonar_url.value' terraform.tfstate)
+          echo "output_value=$SONAR_HOST_URL" >> $GITHUB_OUTPUT
+
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+
+      - uses: SonarSource/sonarqube-scan-action@v5
+        env:
+          SONAR_TOKEN: ${{ steps.tf_output.outputs.sonar_token }}
+          SONAR_HOST_URL: ${{ steps.tf_output.outputs.sonar_host_url }}
+      # If you wish to fail your job when the Quality Gate is red, uncomment the
+      # following lines. This would typically be used to fail a deployment.
+      # - uses: SonarSource/sonarqube-quality-gate-action@v1
+      #   timeout-minutes: 5
+      #   env:
+      #     SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
   test:
     name: Run Tests in Parallel
