@@ -12,16 +12,27 @@ class StockMicroserviceGateway(IStockProviderGateway):
     """Gateway for interacting with the Stock Microservice."""
     
     def __init__(self):
-        self._base_url = os.getenv("STOCK_MICROSERVICE_URL", "http://localhost:8003/api/v1")
+        self.base_url = os.getenv("STOCK_MICROSERVICE_URL", "http://localhost:8003/api/v1")
         self._headers = {
             "Content-Type": "application/json",
             "x-api-key": os.getenv("STOCK_MICROSERVICE_X_API_KEY")
         }
+        
+    @property
+    def base_url(self) -> str:
+        return self._base_url
+
+    @base_url.setter
+    def base_url(self, url: str):
+        if not url.startswith('http'):
+            url = f"http://{url}"
+
+        self._base_url = url
 
     def get_product_by_id(self, product_id: str) -> Dict[str, Any]:
         """Retrieve a product by its ID."""
-        response = requests.get(f"{self._base_url}/products/{product_id}/id", headers=self._headers)
-        
+        response = requests.get(f"{self.base_url}/products/{product_id}/id", headers=self._headers)
+
         if response.status_code != HTTPStatus.OK:
             raise EntityNotFoundException(message=PRODUCT_NOT_FOUND, id=product_id)
         
@@ -29,7 +40,7 @@ class StockMicroserviceGateway(IStockProviderGateway):
     
     def get_products_by_category_name(self, category_name: str) -> List[Dict[str, Any]]:
         """Retrieve products by their category."""
-        response = requests.get(f"{self._base_url}/categories/{category_name}/products", headers=self._headers)
+        response = requests.get(f"{self.base_url}/categories/{category_name}/products", headers=self._headers)
         
         if response.status_code == HTTPStatus.NOT_FOUND:
             return []
@@ -40,7 +51,7 @@ class StockMicroserviceGateway(IStockProviderGateway):
     def get_product_by_name(self, name: str) -> Dict[str, Any]:
         """Retrieve a product by its name."""
         # Assuming the endpoint returns a list and we want the first match.
-        response = requests.get(f"{self._base_url}/products/{name}/name", headers=self._headers)
+        response = requests.get(f"{self.base_url}/products/{name}/name", headers=self._headers)
 
         if response.status_code == HTTPStatus.NOT_FOUND:
             raise EntityNotFoundException(message=PRODUCT_NOT_FOUND, id=name)
@@ -54,7 +65,7 @@ class StockMicroserviceGateway(IStockProviderGateway):
     
     def get_categories(self) -> List[Dict[str, Any]]:
         """Retrieve all available categories."""
-        response = requests.get(f"{self._base_url}/categories", headers=self._headers)
+        response = requests.get(f"{self.base_url}/categories", headers=self._headers)
 
         if response.status_code == HTTPStatus.NOT_FOUND:
             return []
@@ -64,7 +75,7 @@ class StockMicroserviceGateway(IStockProviderGateway):
 
     def get_category_by_id(self, category_id: str) -> Dict[str, Any]:
         """Retrieve a category by its ID."""
-        response = requests.get(f"{self._base_url}/categories/{category_id}/id", headers=self._headers)
+        response = requests.get(f"{self.base_url}/categories/{category_id}/id", headers=self._headers)
 
         if response.status_code == HTTPStatus.NOT_FOUND:
             raise EntityNotFoundException(message=CATEGORY_NOT_FOUND, id=category_id)
@@ -74,7 +85,7 @@ class StockMicroserviceGateway(IStockProviderGateway):
 
     def get_category_by_name(self, category_name: str) -> Dict[str, Any]:
         """Retrieve a category by its name."""
-        response = requests.get(f"{self._base_url}/categories/{category_name}/name", headers=self._headers)
+        response = requests.get(f"{self.base_url}/categories/{category_name}/name", headers=self._headers)
 
         if response.status_code == HTTPStatus.NOT_FOUND:
             raise EntityNotFoundException(message=CATEGORY_NOT_FOUND, id=category_name)

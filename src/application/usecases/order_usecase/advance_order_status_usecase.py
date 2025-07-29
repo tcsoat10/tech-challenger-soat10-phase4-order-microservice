@@ -37,6 +37,10 @@ class AdvanceOrderStatusUseCase:
 
         order.advance_order_status(self.order_status_gateway, current_user=current_user)
 
+        callback_url = os.getenv('PAYMENT_NOTIFICATION_URL')
+        if not callback_url.startswith('http'):
+            callback_url = f"http://{callback_url}"
+
         if order.order_status.status == OrderStatusEnum.ORDER_PLACED.status:
             payment_dto = CreatePaymentDTO(
                 title=f"order-{order.id}",
@@ -44,7 +48,7 @@ class AdvanceOrderStatusUseCase:
                 payment_method=PaymentMethodEnum.QR_CODE.name,
                 total_amount=order.total,
                 currency="BRL",
-                notification_url=f"{os.getenv('PAYMENT_NOTIFICATION_URL')}?api_key={os.getenv('ORDER_MICROSERVICE_X_API_KEY')}",
+                notification_url=f"{callback_url}?api_key={os.getenv('ORDER_MICROSERVICE_X_API_KEY')}",
                 items=[
                     {
                         "name": order_item.product_name,
