@@ -11,11 +11,21 @@ class PaymentProviderGateway(IPaymentProviderGateway):
     """
 
     def __init__(self):
-        self._base_url = os.getenv("PAYMENT_SERVICE_URL")
+        self.base_url = os.getenv("PAYMENT_SERVICE_URL")
         self._headers = {
             "Content-Type": "application/json",
             "x-api-key": os.getenv("PAYMENT_SERVICE_API_KEY")
         }
+        
+    @property
+    def base_url(self) -> str:
+        return self._base_url
+    
+    @base_url.setter
+    def base_url(self, url: str):
+        if not url.startswith('http'):
+            url = f"http://{url}"
+        self._base_url = url
     
     def create_payment(self, payment_data: CreatePaymentDTO) -> Dict[str, Any]:
         """
@@ -32,7 +42,7 @@ class PaymentProviderGateway(IPaymentProviderGateway):
         """
 
         response = requests.post(
-            f"{self._base_url}/payment",
+            f"{self.base_url}/payment",
             headers=self._headers,
             json=payment_data.model_dump(mode='json'),
         )
@@ -62,7 +72,7 @@ class PaymentProviderGateway(IPaymentProviderGateway):
             requests.HTTPError: If the HTTP request to the payment service fails.
             ValueError: If the response does not contain payment details.
         """
-        response = requests.get(f"{self._base_url}/payment/id/{payment_id}", headers=self._headers)
+        response = requests.get(f"{self.base_url}/payment/id/{payment_id}", headers=self._headers)
         response.raise_for_status()
         
         payment_details = response.json()
