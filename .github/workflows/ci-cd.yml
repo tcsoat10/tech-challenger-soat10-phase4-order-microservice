@@ -187,6 +187,7 @@ jobs:
           aws ecr get-login-password --region ${{ env.REGION_DEFAULT }} | docker login --username AWS --password-stdin ${{ env.AWS_ECR_REGISTRY }}
 
       - name: Build and Push Docker Image
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         id: build-image
         run: |
           # Build and push Docker image
