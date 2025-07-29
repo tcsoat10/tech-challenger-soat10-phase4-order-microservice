@@ -119,7 +119,6 @@ jobs:
             -Dsonar.login="admin"
             -Dsonar.projectKey=soattc-order-app
             -Dsonar.sources=src
-            -Dsonar.tests=tests
             -Dsonar.python.coverage.reportPaths=coverage.xml
 
       - name: SonarQube Quality Gate check
