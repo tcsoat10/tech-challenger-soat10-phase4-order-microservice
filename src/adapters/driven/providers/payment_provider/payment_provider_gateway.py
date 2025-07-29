@@ -11,10 +11,10 @@ class PaymentProviderGateway(IPaymentProviderGateway):
     """
 
     def __init__(self):
-        self.base_url = os.getenv("PAYMENT_SERVICE_URL")
+        self.base_url = os.getenv("PAYMENT_SERVICE_URL", "")
         self._headers = {
             "Content-Type": "application/json",
-            "x-api-key": os.getenv("PAYMENT_SERVICE_API_KEY")
+            "x-api-key": os.getenv("PAYMENT_SERVICE_API_KEY", "")
         }
         
     @property
