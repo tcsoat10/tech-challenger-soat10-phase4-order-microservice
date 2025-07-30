@@ -65,7 +65,7 @@ def test_create_order_item_with_invalid_product_id(client, db_session):
         'detail': {
             'code': str(ErrorCode.ENTITY_NOT_FOUND),
             'message': 'Product not found.',
-            'details': None,
+            'details': {},
         }
     }
 
@@ -96,7 +96,7 @@ def test_get_order_item_by_id_with_invalid_id(client, db_session):
         'detail': {
             'code': str(ErrorCode.ENTITY_NOT_FOUND),
             'message': 'Order Item not found.',
-            'details': None,
+            'details': {},
         }
     }
 
@@ -169,7 +169,7 @@ def test_update_order_item_with_invalid_product_id(client, db_session):
         'detail': {
             'code': str(ErrorCode.ENTITY_NOT_FOUND),
             'message': 'Product not found.',
-            'details': None,
+            'details': {},
         }
     }
 
@@ -192,7 +192,7 @@ def test_update_order_item_with_invalid_order_item_id(client, db_session):
         'detail': {
             'code': str(ErrorCode.ENTITY_NOT_FOUND),
             'message': 'Order Item not found.',
-            'details': None,
+            'details': {},
         }
     }
 
@@ -214,7 +214,7 @@ def test_delete_order_item_with_invalid_id(client, db_session):
         'detail': {
             'code': str(ErrorCode.ENTITY_NOT_FOUND),
             'message': 'Order Item not found.',
-            'details': None,
+            'details': {},
         }
     }
 
@@ -235,7 +235,7 @@ def test_delete_order_item_twice(client, db_session):
         'detail': {
             'code': str(ErrorCode.ENTITY_NOT_FOUND),
             'message': 'Order Item not found.',
-            'details': None,
+            'details': {},
         }
     }
 
