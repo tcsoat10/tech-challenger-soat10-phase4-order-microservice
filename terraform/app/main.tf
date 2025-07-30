@@ -94,7 +94,7 @@ resource "kubernetes_deployment" "order_app" {
           }
           env {
             name = "PAYMENT_NOTIFICATION_URL"
-            value = kubernetes_service.order_app_lb.status[0].load_balancer[0].ingress[0].hostname
+            value = "${kubernetes_service.order_app_lb.status[0].load_balancer[0].ingress[0].hostname}/api/v1/webhooks/payment_notification"
           }
           env {
             name = "ORDER_MICROSERVICE_X_API_KEY"
