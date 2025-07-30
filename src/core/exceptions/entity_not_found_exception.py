@@ -12,7 +12,7 @@ class EntityNotFoundException(BaseDomainException):
         super().__init__(
             message=message,
             error_code=ErrorCode.ENTITY_NOT_FOUND,
-            **kwargs            
+            details=kwargs
         )
 
 __all__ = ["EntityNotFoundException"]
